@@ -360,7 +360,7 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
       <div class="vrow">
         <label>Taktart <select id="vts"><option value="4">4/4</option><option value="3">3/4</option></select></label>
         <label>Pausen kürzen ab <select id="vgap"><option value="2">2 s</option><option value="3" selected>3 s</option><option value="5">5 s</option><option value="0">nie</option></select></label>
-        <label>Auswertung <select id="vrate"><option value="1">1× (genauer)</option><option value="2" selected>2×</option><option value="4">4× (schneller)</option></select></label>
+        <label>Auswertung <select id="vrate"><option value="0.25">0,25× (sehr genau)</option><option value="0.5" selected>0,5× (genau)</option><option value="1">1×</option><option value="2">2× (schneller)</option><option value="4">4× (am schnellsten)</option></select></label>
       </div>
       <div class="vrow"><label class="grow">Titel <input type="text" id="vtitle"></label></div>
       <div class="vrow"><button class="btn primary" id="anaBtn" disabled>Auswertung starten</button><button class="btn" id="stopBtn" hidden>Abbrechen</button></div>
@@ -409,6 +409,7 @@ const FONT_BODY = css.getPropertyValue('--f-body'), FONT_MONO = css.getPropertyV
 /* ---------- Sprachen: Deutsch (Schlüssel), Englisch, Spanisch ---------- */
 const I18N = {
 'Bibliothek öffnen':['Open library','Abrir biblioteca'],
+'0,25× (sehr genau)':['0.25× (very accurate)','0,25× (muy preciso)'], '0,5× (genau)':['0.5× (accurate)','0,5× (preciso)'], '2× (schneller)':['2× (faster)','2× (más rápido)'], '4× (am schnellsten)':['4× (fastest)','4× (lo más rápido)'],
 '{n} Teile: {l}':['{n} parts: {l}','{n} partes: {l}'], 'Aufnahmebereich':['Recording range','Rango de grabación'],
 'Video-Teil':['Video part','Parte del vídeo'], 'Diesen Teil auswerten':['Analyse this part','Analizar esta parte'], 'Aufnahme':['Recording','Grabación'],
 'Start hier setzen':['Set start here','Fijar inicio aquí'], 'Ende hier setzen':['Set end here','Fijar final aquí'], 'Ganzes Video':['Whole video','Vídeo completo'],
@@ -1934,12 +1935,12 @@ function calibrate(){
   const keys = [];
   for (let j = 0; j + 1 < bx.length; j++) {
     const dlt = j - cWhite, oct = Math.floor(dlt / 7), st = ((dlt % 7) + 7) % 7;
-    keys.push({x: (bx[j] + bx[j+1]) / 2, y: wy, rel: oct * 12 + WH[st], black: false});
+    keys.push({x: (bx[j] + bx[j+1]) / 2, y: wy, y2: Math.round((b.y2 + wy) / 2), rel: oct * 12 + WH[st], black: false});
   }
   bounds.forEach((bd, i) => {
     if (!bd.black) return;
     const j = i + pre - 1, dlt = j - cWhite, oct = Math.floor(dlt / 7), st = ((dlt % 7) + 7) % 7;
-    keys.push({x: bd.x, y: byy, rel: oct * 12 + WH[st] + 1, black: true});
+    keys.push({x: bd.x, y: byy, y2: Math.round(b.y1 + (b.y2 - b.y1) * 0.8), rel: oct * 12 + WH[st] + 1, black: true});
   });
   const center = Math.floor((bx.length - 1) / 2), guess = Math.max(1, Math.min(6, 4 - Math.floor((center - cWhite) / 7)));
   const sel = $('#c0'); sel.innerHTML = '';
@@ -1978,21 +1979,27 @@ vcv.addEventListener('pointermove', e => {
 });
 vcv.addEventListener('pointerup', () => { if (drag && V.region) calibrate(); drag = null; });
 
+function samplePoint(f, kx, ky){
+  let r = 0, g = 0, b = 0, n = 0;
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    const x = kx + dx, y = ky + dy; if (x < 0 || y < 0 || x >= f.fw || y >= f.fh) continue;
+    const j = (y * f.fw + x) * 4; r += f.d[j]; g += f.d[j+1]; b += f.d[j+2]; n++;
+  }
+  if (!n) return -1;
+  r /= n; g /= n; b /= n;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), c = mx - mn;
+  if (!(c > 55 && mx > 70 && c / mx > 0.38)) return -1;
+  const h = mx === r ? ((g - b) / c) % 6 : mx === g ? (b - r) / c + 2 : (r - g) / c + 4;
+  return (h * 60 + 360) % 360;
+}
 function sampleKeys(f, keys){
+  // zwei Messpunkte je Taste, damit Beschriftungen oder Schatten eine Markierung nicht verdecken
   const res = new Array(keys.length);
   for (let i = 0; i < keys.length; i++) {
-    const k = keys[i]; let r = 0, g = 0, b = 0, n = 0;
-    const kx = Math.round(k.x), ky = Math.round(k.y);
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-      const x = kx + dx, y = ky + dy; if (x < 0 || y < 0 || x >= f.fw || y >= f.fh) continue;
-      const j = (y * f.fw + x) * 4; r += f.d[j]; g += f.d[j+1]; b += f.d[j+2]; n++;
-    }
-    r /= n; g /= n; b /= n;
-    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), c = mx - mn;
-    const lit = c > 55 && mx > 70 && c / mx > 0.38;
-    let hue = 0;
-    if (lit) { hue = mx === r ? ((g - b) / c) % 6 : mx === g ? (b - r) / c + 2 : (r - g) / c + 4; hue = (hue * 60 + 360) % 360; }
-    res[i] = lit ? hue : -1;
+    const k = keys[i], kx = Math.round(k.x);
+    let h = samplePoint(f, kx, Math.round(k.y));
+    if (h < 0 && k.y2 !== undefined) h = samplePoint(f, kx, k.y2);
+    res[i] = h;
   }
   return res;
 }
@@ -2000,7 +2007,7 @@ async function analyse(){
   if (!V.cal || V.running) return;
   V.running = true; V.stop = false;
   $('#anaBtn').hidden = true; $('#stopBtn').hidden = false; $('#vprog').hidden = false;
-  const rate = +$('#vrate').value, keys = V.cal.keys, oct = +$('#c0').value;
+  const rate = +$('#vrate').value, keys = V.cal.keys, oct = +$('#c0').value, deb = rate <= 1 ? 1 : 2;
   const events = [], state = keys.map(() => ({on:false, cnt:0, t0:0, hues:[], lastSeen:0}));
   let offset = 0;
   const todo = V.files.map((f, i) => i).filter(i => V.ranges[i].use), total = todo.length;
@@ -2021,7 +2028,7 @@ async function analyse(){
           const f = frameData(V.region, 960), smp = sampleKeys(f, keys), T = offset + t - ra;
           for (let i = 0; i < keys.length; i++) {
             const st = state[i], lit = smp[i] >= 0;
-            if (lit !== st.on) { st.cnt++; if (st.cnt === 1) st.tc = T; if (st.cnt >= 2) {
+            if (lit !== st.on) { st.cnt++; if (st.cnt === 1) st.tc = T; if (st.cnt >= deb) {
               if (lit) { st.on = true; st.t0 = st.tc; st.hues = [smp[i]]; }
               else { st.on = false; events.push({p: 12 * (oct + 1) + keys[i].rel, t0: st.t0, t1: st.tc, hue: circMean(st.hues)}); }
               st.cnt = 0; } }
