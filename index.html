@@ -175,6 +175,43 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
 .progress{height:6px;border-radius:3px;background:var(--raise);overflow:hidden}
 .progress i{display:block;height:100%;width:0;background:var(--rh)}
 
+
+.login{position:fixed;inset:0;z-index:30;background:radial-gradient(90% 70% at 80% 0%,color-mix(in srgb,var(--rh) 16%,transparent),transparent 60%),var(--stage);overflow-y:auto}
+.login-inner{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:max(48px,env(safe-area-inset-top,0px)) 40px;display:flex;flex-direction:column;gap:28px}
+.brand-xl{font-family:var(--f-display);font-weight:700;font-size:clamp(2.4rem,7vw,3.6rem);color:var(--rh);letter-spacing:-.01em}
+.login-brand p{font-size:1.2rem;margin:4px 0 0;color:var(--fg)}
+.profiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.prof{--h:30;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.prof:hover{border-color:var(--rh)}
+.prof .av{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:1.8rem;color:#fff;background:linear-gradient(150deg,hsl(var(--h) 50% 45%),hsl(calc(var(--h) - 30) 55% 25%))}
+.prof.add .av{background:var(--raise);color:var(--rh);border:1px dashed var(--rh)}
+.prof strong{font-size:1.05rem}
+.prof span:last-child{font-size:.78rem;color:var(--muted)}
+.lform{display:flex;flex-direction:column;gap:12px;max-width:420px}
+.lform h3{font-family:var(--f-display);margin:0;font-size:1.3rem}
+.lform label{display:flex;flex-direction:column;gap:6px;font-size:.9rem;color:var(--muted)}
+.lform input{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--fg);font:inherit;font-size:1.05rem}
+.err{color:var(--bad);margin:0;min-height:1.2em}
+.userchip{gap:8px;padding:5px 12px 5px 5px}
+.userchip .av{width:24px;height:24px;border-radius:50%;background:var(--rh);color:#1b1408;display:grid;place-items:center;font-weight:700;font-size:.8rem}
+.cover .cimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 25%}
+.cover.has-img::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55),transparent 45%)}
+.cover.has-img .ini,.cover.has-img .staff{display:none}
+.cover .lvl,.cover .fav,.cover .prog{z-index:1}
+.cover .prog{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.18)}
+.cover .prog i{display:block;height:100%;background:var(--ok)}
+.ct em.st{color:var(--muted)}
+.ct em.st b{color:var(--fg);font-weight:600}
+.ct em.st b.good,.lst b.good{color:var(--ok)}
+.ct em.st b.mid,.lst b.mid{color:var(--rh)}
+.ct em.st b.high,.lst b.high{color:var(--bad)}
+.lvl-card .lst{color:var(--muted)}
+.lvl-card .lst b{color:var(--fg)}
+.edit{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.edit label:not(.btn){display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);flex:1 1 200px}
+.edit input[type="text"],.edit input:not([type]){background:var(--stage);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--fg);font:inherit}
+#eImg{position:absolute;opacity:0;width:1px;height:1px}
+
 @media (max-width:700px){
   .stats{gap:12px}
   .stats b{font-size:.95rem}
@@ -195,6 +232,7 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
       <div><b id="stWrong">0</b><span>Fehlgriffe</span></div>
     </div>
     <button id="midiBtn" class="chip" data-state="idle"><i class="dot"></i><span id="midiText">Klavier verbinden</span></button>
+    <button id="userBtn" class="chip userchip" title="Abmelden und Profil wechseln"><span class="av" id="userAv">?</span><span id="userName">Profil</span><span class="caret">⇄</span></button>
     <button id="helpBtn" class="icon-btn" aria-label="Hilfe">?</button>
   </header>
 
@@ -235,6 +273,27 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
   </footer>
 </div>
 
+<div class="login" id="login" hidden>
+  <div class="login-inner">
+    <div class="login-brand"><span class="brand-xl">Piano Hero</span><p id="loginSub">Wer spielt heute?</p></div>
+    <div class="profiles" id="profiles"></div>
+    <form id="pinForm" class="lform" hidden>
+      <h3 id="pinWho">PIN</h3>
+      <input id="pinIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="PIN eingeben" aria-label="PIN">
+      <div class="vrow"><button class="btn primary" type="submit">Anmelden</button><button class="btn" type="button" id="pinBack">Anderes Profil</button></div>
+      <p class="err" id="pinErr"></p>
+    </form>
+    <form id="newForm" class="lform" hidden>
+      <h3>Neues Profil</h3>
+      <label>Name <input id="newName" maxlength="24" autocomplete="off" placeholder="z. B. Gunnar"></label>
+      <label>PIN (freiwillig, 4 bis 8 Ziffern) <input id="newPin" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></label>
+      <div class="vrow"><button class="btn primary" type="submit">Profil anlegen</button><button class="btn" type="button" id="newBack">Zurück</button></div>
+      <p class="err" id="newErr"></p>
+    </form>
+    <p class="hint">Profile, Favoriten und Fortschritt werden nur auf diesem Gerät gespeichert. Die PIN verhindert, dass jemand versehentlich in deinem Profil übt. Sie ist kein Schutz vor fremdem Zugriff auf das Gerät.</p>
+  </div>
+</div>
+
 <div class="sheet libpage" id="lib" hidden>
   <div class="lib-inner">
     <header class="lib-head">
@@ -249,7 +308,7 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
     </header>
     <div class="chips" id="diffChips" aria-label="Nach Schwierigkeit filtern"></div>
     <div id="libBody"></div>
-    <p class="hint credit">Klassische Stücke: Notenvorlagen aus der <a href="https://github.com/musetrainer/library" target="_blank" rel="noopener">MuseTrainer Library</a> (gemeinfrei). Jede Fassung „Einfach“ und „Mittel“ erzeugt die App automatisch aus dem Original. Die Schwierigkeit ist eine Schätzung aus Notendichte und Anteil schwarzer Tasten.</p>
+    <p class="hint credit">Bilder: Wikipedia / Wikimedia Commons (werden bei Internetverbindung geladen). Klassische Stücke: Notenvorlagen aus der <a href="https://github.com/musetrainer/library" target="_blank" rel="noopener">MuseTrainer Library</a> (gemeinfrei). Jede Fassung „Einfach“ und „Mittel“ erzeugt die App automatisch aus dem Original. Die Schwierigkeit ist eine Schätzung aus Notendichte und Anteil schwarzer Tasten.</p>
   </div>
   <div class="detail" id="detail" hidden></div>
 </div>
@@ -644,9 +703,26 @@ const DB = {
   async put(rec){ if (!this.db) { this.mem.set(rec.id, rec); return false; } try { await this.req(this.store('readwrite').put(rec)); return true; } catch(e){ this.mem.set(rec.id, rec); return false; } },
   async del(id){ this.mem.delete(id); if (this.db) { try { await this.req(this.store('readwrite').delete(id)); } catch(e){} } }
 };
-const meta = LS.get('pianohero.meta', {fav:{}, best:{}, recent:[]});
-meta.fav = meta.fav || {}; meta.best = meta.best || {}; meta.recent = meta.recent || [];
-const saveMeta = () => LS.set('pianohero.meta', meta);
+/* ---------- Benutzer (Profile auf diesem Gerät) ---------- */
+let USER = null;
+const blankMeta = () => ({fav:{}, best:{}, recent:[], lastLevel:{}, stats:{}});
+let meta = blankMeta();
+function loadMeta(uid){
+  let m = LS.get('pianohero.meta.' + uid, null);
+  if (!m && !LS.get('pianohero.metaMigrated', false)) { m = LS.get('pianohero.meta', null); LS.set('pianohero.metaMigrated', true); }
+  m = Object.assign(blankMeta(), m || {});
+  Object.keys(m.best || {}).forEach(id => { if (!m.stats[id]) m.stats[id] = {prog:100, err: 100 - m.best[id], runs:1}; });
+  m.best = {};
+  return m;
+}
+const saveMeta = () => { if (USER) LS.set('pianohero.meta.' + USER.id, meta); };
+const getUsers = () => LS.get('pianohero.users', []);
+async function pinHash(uid, pin){
+  if (!pin) return '';
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('pianohero:' + uid + ':' + pin));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 
 /* ---------- Schwierigkeit ---------- */
 const DIFF = ['', 'Einsteiger', 'Grundstufe', 'Mittelstufe', 'Fortgeschritten', 'Konzertreif'];
@@ -761,7 +837,7 @@ async function loadLibrary(){
   const recs = await DB.all();
   library = DEMOS.map(s => ({id:s.id, title:s.title, composer:s.composer, tags:s.tags, src:'demo', dur:s.dur, diff: songDiff(s)}))
     .concat(PD_SONGS.map(p => ({id:p.id, title:p.title, composer:p.composer, tags:p.tags, src:'pd', dur:p.dur, diff: diffOf(p.nps, p.black)})))
-    .concat(recs.sort((a,b) => (b.added||0) - (a.added||0)).map(r => ({id:r.id, title:r.title, composer:r.composer || '', tags:[], cat: r.cat || 'Importiert', src:'user', format:r.format, dur:r.dur, diff:r.diff || 2})));
+    .concat(recs.filter(r => !r.owner || (USER && r.owner === USER.id)).sort((a,b) => (b.added||0) - (a.added||0)).map(r => ({id:r.id, title:r.title, composer:r.composer || '', tags:[], cat: r.cat || 'Importiert', src:'user', format:r.format, dur:r.dur, diff:r.diff || 2, img: r.img || '', artist: r.composer || ''})));
 }
 async function loadBase(entry){
   if (baseCache.has(entry.id)) return baseCache.get(entry.id);
@@ -809,89 +885,129 @@ const saveSettings = () => LS.set('pianohero.settings', {mode:S.mode, hand:S.han
 const practiced = n => S.mode !== 'listen' && (S.hand === 'B' || n.h === S.hand);
 const autoPlays = n => S.mode === 'listen' || !practiced(n);
 
-/* ---------- Klang ---------- */
-let ac = null, master = null;
+/* ---------- Klang: ein Oszillator je Ton, vorausgeplant auf der Audio-Uhr ---------- */
+let ac = null, master = null, wave = null;
+const voices = [];
 function audio(){
   if (!ac) {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
-    ac = new AC(); master = ac.createGain(); master.gain.value = 0.3;
-    const comp = ac.createDynamicsCompressor(); master.connect(comp); comp.connect(ac.destination);
+    ac = new AC({latencyHint:'playback'});
+    master = ac.createGain(); master.gain.value = 0.28;
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5200;
+    const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4;
+    master.connect(lp); lp.connect(comp); comp.connect(ac.destination);
+    const re = new Float32Array([0, 1, 0.42, 0.2, 0.11, 0.06, 0.035, 0.02, 0.01]), im = new Float32Array(re.length);
+    wave = ac.createPeriodicWave(re, im);
   }
   if (ac.state === 'suspended') ac.resume();
   return ac;
 }
-function synth(p, dur, vel){
+function synth(p, dur, vel, when){
   const a = audio(); if (!a) return;
-  const t0 = a.currentTime, f = 440 * Math.pow(2, (p-69)/12);
-  const end = t0 + Math.max(0.25, Math.min(dur, 4));
-  const g = a.createGain(), lp = a.createBiquadFilter();
-  lp.type = 'lowpass'; lp.frequency.value = Math.min(9000, f*6);
-  g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(vel, t0 + 0.006);
-  g.gain.exponentialRampToValueAtTime(vel*0.3, t0 + 0.35);
-  g.gain.setValueAtTime(vel*0.3, end);
-  g.gain.exponentialRampToValueAtTime(0.0001, end + 0.35);
-  [['triangle', 1, 1], ['sine', 2, 0.35], ['sine', 3, 0.12]].forEach(([type, mul, amp]) => {
-    const osc = a.createOscillator(), og = a.createGain();
-    osc.type = type; osc.frequency.value = f*mul; og.gain.value = amp;
-    osc.connect(og); og.connect(lp); osc.start(t0); osc.stop(end + 0.4);
-  });
-  lp.connect(g); g.connect(master);
+  const t0 = Math.max(a.currentTime, when || a.currentTime), f = 440 * Math.pow(2, (p-69)/12);
+  const hold = Math.max(0.2, Math.min(dur, 4)), end = t0 + hold;
+  const osc = a.createOscillator(), g = a.createGain();
+  osc.setPeriodicWave(wave); osc.frequency.value = f;
+  const v = vel * (p > 84 ? 0.7 : 1);
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(v, t0 + 0.005);
+  g.gain.setTargetAtTime(v * 0.28, t0 + 0.005, 0.28);
+  g.gain.setTargetAtTime(0, end, 0.09);
+  osc.connect(g); g.connect(master);
+  osc.start(t0); osc.stop(end + 0.5);
+  const vo = {osc, g, t0, end: end + 0.5};
+  voices.push(vo);
+  osc.onended = () => { const i = voices.indexOf(vo); if (i >= 0) voices.splice(i, 1); try { g.disconnect(); } catch(e){} };
+  if (voices.length > 64) { const old = voices.shift(); try { old.g.gain.setTargetAtTime(0, a.currentTime, 0.02); old.osc.stop(a.currentTime + 0.1); } catch(e){} }
+}
+function cancelScheduled(){
+  if (!ac) return;
+  const now = ac.currentTime;
+  for (const vo of voices.slice()) if (vo.t0 > now + 0.005) { try { vo.osc.stop(); } catch(e){} }
+  S.schedT = S.t;
 }
 
 /* ---------- Spiellogik ---------- */
+function lb(t){ const a = S.song.notes; let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m].s < t) lo = m + 1; else hi = m; } return lo; }
 function resetNotes(from){
   for (const n of S.song.notes) n.state = n.s < from - 0.001 ? 3 : 0;
-  S.armedAt = performance.now(); S.finished = false; hideBanner();
+  S.armedAt = performance.now(); S.finished = false; hideBanner(); cancelScheduled();
 }
 function seek(x, lead){
   if (!S.song) return;
   x = Math.max(0, Math.min(x, S.song.dur));
+  if (x > 0.01) S.farValid = false;
   resetNotes(x);
   S.t = x <= 0.01 ? -LEAD : x - (lead === undefined ? 1.2 : lead);
+  S.schedT = S.t;
   curIdx = -1;
 }
-function restart(){ S.stats = {hit:0, miss:0, wrong:0, streak:0, best:0}; updStats(); seek(0); }
+function restart(){ commitRun(); S.stats = {hit:0, miss:0, wrong:0, streak:0, best:0}; S.far = 0; S.farValid = true; S.runCounted = false; updStats(); seek(0); }
 function hit(n){ n.state = 1; const st = S.stats; st.hit++; st.streak++; st.best = Math.max(st.best, st.streak); updStats(); }
 function miss(n){ n.state = 2; S.stats.miss++; S.stats.streak = 0; updStats(); }
 function wrong(){ S.stats.wrong++; S.stats.streak = 0; updStats(); }
-function gateTime(){ for (const n of S.song.notes) if (n.state === 0 && practiced(n)) return n.s; return null; }
-const groupAt = g => S.song.notes.filter(n => n.state === 0 && practiced(n) && n.s <= g + 0.04);
+function gateTime(){ const a = S.song.notes; for (let i = lb(S.t - 1); i < a.length; i++) { const n = a[i]; if (n.state === 0 && practiced(n)) return n.s; } return null; }
+function groupAt(g){ const a = S.song.notes, out = []; for (let i = lb(g - 0.001); i < a.length && a[i].s <= g + 0.04; i++) { const n = a[i]; if (n.state === 0 && practiced(n)) out.push(n); } return out; }
 const winSong = () => 0.18 * S.tempo;
 
+function schedule(limit){
+  // Töne der Begleitung bis kurz voraus auf der Audio-Uhr einplanen
+  if (!S.sound || !ac || ac.state !== 'running') { S.schedT = Math.max(S.schedT, limit); return; }
+  const a = S.song.notes;
+  for (let i = lb(S.schedT + 1e-6); i < a.length && a[i].s <= limit; i++) {
+    const n = a[i];
+    if (n.s > S.schedT && autoPlays(n) && n.state !== 3) synth(n.p, n.d / S.tempo, 0.42, ac.currentTime + (n.s - S.t) / S.tempo);
+  }
+  S.schedT = Math.max(S.schedT, limit);
+}
 function step(ds){
   const song = S.song; let next = S.t + ds;
   S.waiting = false;
+  let gate = null;
   if (S.mode === 'wait') {
     const g = gateTime();
+    if (g !== null) gate = g;
     if (g !== null && next >= g) {
       next = g;
       const grp = groupAt(g);
       for (const n of grp) if ((presses.get(n.p) || -1) > S.armedAt) hit(n);
-      if (grp.every(n => n.state === 1)) S.armedAt = performance.now();
+      if (grp.every(n => n.state === 1)) { S.armedAt = performance.now(); gate = gateTime(); }
       else S.waiting = true;
     }
   }
-  if (S.sound) for (const n of song.notes) {
-    if (n.s > next) break;
-    if (n.s > S.t && autoPlays(n)) synth(n.p, n.d / S.tempo, 0.45);
-  }
   S.t = next;
+  let limit = S.t + 0.25 * S.tempo;
+  if (gate !== null) limit = Math.min(limit, S.waiting ? gate - 1e-4 : gate + 0.001);
+  if (S.waiting) limit = Math.min(limit, S.t + 0.001);
+  schedule(limit);
+  if (S.mode !== 'listen' && S.farValid) S.far = Math.max(S.far || 0, S.t);
   if (S.mode === 'play') {
-    const w = winSong();
-    for (const n of song.notes) { if (n.s > S.t) break; if (n.state === 0 && practiced(n) && n.s < S.t - w) miss(n); }
+    const w = winSong(), a = song.notes;
+    for (let i = lb(S.t - w - 2); i < a.length && a[i].s < S.t - w; i++) { const n = a[i]; if (n.state === 0 && practiced(n)) miss(n); }
   }
-  if (S.loop && S.loopA !== null && S.loopB > S.loopA && S.t >= S.loopB) { seek(S.loopA); return; }
+  if (S.loop && S.loopA !== null && S.loopB > S.loopA && S.t >= S.loopB) { S.farValid = false; seek(S.loopA); return; }
   if (S.t >= song.dur + 0.6) finishSong();
+}
+function commitRun(){
+  const s = S.song; if (!s || !USER) return;
+  const st = S.stats, tot = st.hit + st.miss + st.wrong;
+  if (st.hit + st.miss < 5) return;
+  const prog = S.finished && S.farValid ? 100 : S.farValid ? Math.min(100, Math.round(100 * (S.far || 0) / Math.max(s.dur, 1))) : 0;
+  const cur = meta.stats[s.id] || {prog:0, err:null, runs:0};
+  cur.prog = Math.max(cur.prog || 0, prog);
+  if (tot && (prog >= 25 || S.finished)) { const err = Math.round(100 * (st.miss + st.wrong) / tot); cur.err = (cur.err === null || cur.err === undefined) ? err : Math.min(cur.err, err); }
+  if (!S.runCounted) { cur.runs = (cur.runs || 0) + 1; S.runCounted = true; }
+  cur.last = Date.now();
+  meta.stats[s.id] = cur; saveMeta();
 }
 function finishSong(){
   S.playing = false; S.finished = true; wake(false); updPlay();
   const st = S.stats, tot = st.hit + st.miss + st.wrong;
   if (S.mode === 'listen' || !tot) { showBanner('Ende des Songs.'); return; }
-  const pct = Math.round(100*st.hit/tot);
-  const prev = meta.best[S.song.id] || 0;
-  if (pct > prev) { meta.best[S.song.id] = pct; saveMeta(); }
-  showBanner('Geschafft: <b>' + pct + ' %</b> Genauigkeit · beste Serie <b>' + st.best + '</b>' + (pct > prev && prev ? ' · neuer Bestwert' : ''));
+  const before = meta.stats[S.song.id] ? meta.stats[S.song.id].err : null;
+  commitRun();
+  const err = Math.round(100 * (st.miss + st.wrong) / tot);
+  showBanner('Geschafft · Fehlerquote <b>' + err + ' %</b> · beste Serie <b>' + st.best + '</b>' + (before !== null && before !== undefined && err < before ? ' · neuer Bestwert' : ''));
 }
 
 function noteOn(p, src){
@@ -906,8 +1022,9 @@ function noteOn(p, src){
       }
     } else {
       const w = winSong(); let best = null;
-      for (const n of S.song.notes) {
-        if (n.s > S.t + w) break;
+      const arr = S.song.notes;
+      for (let i = lb(S.t - w - 0.01); i < arr.length; i++) {
+        const n = arr[i]; if (n.s > S.t + w) break;
         if (n.state === 0 && n.p === p && practiced(n) && Math.abs(n.s - S.t) <= w && (!best || Math.abs(n.s-S.t) < Math.abs(best.s-S.t))) best = n;
       }
       if (best) { hit(best); verdict = 'ok'; } else { wrong(); verdict = 'bad'; }
@@ -1073,7 +1190,9 @@ function draw(now){
       cx.font = '500 11px ' + FONT_MONO; cx.textAlign = 'left'; cx.fillText(lab, 6, y - 4);
     });
     cx.font = '600 11px ' + FONT_BODY; cx.textAlign = 'center'; cx.textBaseline = 'bottom';
-    for (const n of S.song.notes) {
+    const arr = S.song.notes;
+    for (let ni = lb(S.t - 8); ni < arr.length; ni++) {
+      const n = arr[ni];
       if (n.s - S.t > (fall ? S.look : 0.1)) break;
       if (n.s + n.d < S.t - 0.05 && !fall) continue;
       const pr = practiced(n), col = n.h === 'R' ? C.rh : C.lh;
@@ -1142,7 +1261,8 @@ const KB = {a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,z:68,y:68,h:69,u:70,j:71,k:7
 const typing = el => el && (el.tagName === 'INPUT' && el.type !== 'range' || el.tagName === 'TEXTAREA');
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey || typing(e.target)) return;
-  if (!$('#lib').hidden || !$('#help').hidden) { if (e.key === 'Escape') closeSheets(); return; }
+  if (!$('#login').hidden) return;
+  if (!$('#lib').hidden || !$('#help').hidden || !$('#video').hidden) { if (e.key === 'Escape') closeSheets(); return; }
   if (e.code === 'Space' && e.target.tagName !== 'BUTTON') { e.preventDefault(); togglePlay(); return; }
   const p = KB[e.key.toLowerCase()]; if (p === undefined || e.repeat) return;
   noteOn(p, 'key');
@@ -1172,10 +1292,11 @@ function togglePlay(){
   audio();
   if (!S.playing && S.finished) restart();
   S.playing = !S.playing; S.armedAt = performance.now();
+  if (S.playing) { S.schedT = S.t; lastAc = 0; } else { cancelScheduled(); commitRun(); }
   if (S.playing) hideBanner();
   wake(S.playing); updPlay();
 }
-async function selectEntry(entry, lvl){
+async function selectEntry(entry, lvl, quiet){
   lvl = lvl || 'original';
   let song;
   try { const base = await loadBase(entry); song = getVariant(base, lvl); }
@@ -1186,6 +1307,7 @@ async function selectEntry(entry, lvl){
   selectSong(song); return true;
 }
 function selectSong(song){
+  commitRun(); S.stats = {hit:0, miss:0, wrong:0, streak:0, best:0}; S.far = 0; S.runCounted = true;
   S.song = song; S.playing = false; S.loopA = S.loopB = null; S.loop = false;
   $('#songTitle').textContent = song.title;
   const L = LEVELS.find(x => x.k === (song.level || 'original'));
@@ -1269,21 +1391,78 @@ function initials(e){
   const parts = src.replace(/[^\p{L}\s.-]/gu, ' ').split(/\s+/).filter(Boolean);
   return (parts.length > 1 ? parts[parts.length - 1] : parts[0] || '♪').slice(0, 1).toUpperCase();
 }
+/* ---------- Bilder: Wikipedia-Porträts bzw. passende Motive ---------- */
+const IMG_Q = {'demo-entchen':['Stockente'], 'demo-haenschen':['Hänschen klein'], 'demo-jakob':['Glocke'], 'demo-morgen':['Weihnachtsmann'],
+  'demo-jingle':['Pferdeschlitten'], 'demo-stille':['Stille Nacht, heilige Nacht'], 'pd-menuett':['Menuett'], 'pd-kanon':['Johann Pachelbel', 'Kanon (Musik)']};
+const COMP_Q = {'Pjotr Iljitsch Tschaikowsky':'Pjotr Iljitsch Tschaikowski', 'G. F. Händel / J. Halvorsen':'Georg Friedrich Händel', 'Franz Schubert / Franz Liszt':'Franz Schubert'};
+const imgCache = LS.get('pianohero.img', {});
+const imgPending = new Map();
+function imgQueries(e){
+  if (IMG_Q[e.id]) return IMG_Q[e.id].map(q => ({q, exact:true}));
+  if (e.src !== 'user') { const c = COMP_Q[e.composer] || e.composer; return c ? [{q:c, exact:true}] : []; }
+  const out = []; if (e.artist) out.push({q:e.artist, exact:false}); out.push({q:e.title, exact:false}); return out;
+}
+const normW = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[^a-z0-9]+/).filter(w => w.length >= 4 && !['soundtrack','piano','klavier','tutorial','teil','lernen'].includes(w));
+async function wikiThumb(o){
+  const key = (o.exact ? '=' : '?') + o.q;
+  if (key in imgCache) return imgCache[key];
+  const base = 'https://de.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&piprop=thumbnail&pithumbsize=480&redirects=1&';
+  const url = base + (o.exact ? 'titles=' + encodeURIComponent(o.q) : 'generator=search&gsrlimit=6&gsrsearch=' + encodeURIComponent(o.q));
+  let res = '';
+  try {
+    const j = await fetch(url).then(r => r.json());
+    const pages = j.query && j.query.pages ? Object.values(j.query.pages).sort((a, b) => (a.index || 0) - (b.index || 0)) : [];
+    const words = normW(o.q);
+    const p = pages.find(pg => pg.thumbnail && (o.exact || normW(pg.title).some(w => words.includes(w))));
+    res = p ? p.thumbnail.source : '';
+  } catch (err) { return ''; }
+  imgCache[key] = res; LS.set('pianohero.img', imgCache);
+  return res;
+}
+function cachedImage(e){
+  if (e.img) return e.img;
+  for (const o of imgQueries(e)) { const v = imgCache[(o.exact ? '=' : '?') + o.q]; if (v) return v; if (v === undefined) return null; }
+  return '';
+}
+function imageFor(e){
+  if (e.img) return Promise.resolve(e.img);
+  const k = e.id + '|' + (e.artist || '') + '|' + e.title;
+  if (!imgPending.has(k)) imgPending.set(k, (async () => { for (const o of imgQueries(e)) { const u = await wikiThumb(o); if (u) return u; } return ''; })());
+  return imgPending.get(k);
+}
+function setCoverImg(d, url){
+  if (!url || d.querySelector('.cimg')) return;
+  const im = document.createElement('img'); im.className = 'cimg'; im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.src = url;
+  im.onerror = () => { im.remove(); d.classList.remove('has-img'); };
+  d.prepend(im); d.classList.add('has-img');
+}
+const statKey = (e, lvl) => lvl && lvl !== 'original' ? e.id + '@' + lvl : e.id;
+function statFor(e){ const lvl = (meta.lastLevel && meta.lastLevel[e.id]) || 'original'; return {lvl, st: meta.stats[statKey(e, lvl)]}; }
 function coverEl(e, big){
   const d = document.createElement('div'); d.className = 'cover' + (big ? ' big' : '');
-  const h = hueOf(e); d.style.setProperty('--h', h);
+  d.style.setProperty('--h', hueOf(e));
+  const {st} = statFor(e);
   d.innerHTML = '<span class="ini">' + esc(initials(e)) + '</span><span class="staff"></span>' +
     '<span class="lvl" title="Schwierigkeit">' + '●'.repeat(e.diff) + '<i>' + '●'.repeat(5 - e.diff) + '</i></span>' +
-    (meta.fav[e.id] ? '<span class="fav">★</span>' : '');
+    (meta.fav[e.id] ? '<span class="fav">★</span>' : '') +
+    (st && !big ? '<span class="prog" title="Weitester Durchlauf"><i style="width:' + (st.prog || 0) + '%"></i></span>' : '');
+  const c = cachedImage(e);
+  if (c) setCoverImg(d, c);
+  else if (c === null) imageFor(e).then(u => setCoverImg(d, u));
   return d;
+}
+function statLine(st){
+  if (!st) return 'Noch nicht gespielt';
+  return 'Durchgespielt <b>' + (st.prog || 0) + ' %</b> · Fehler <b class="' + (st.err === null || st.err === undefined ? '' : st.err <= 10 ? 'good' : st.err <= 25 ? 'mid' : 'high') + '">' + (st.err === null || st.err === undefined ? '–' : st.err + ' %') + '</b>';
 }
 function cardEl(e){
   const b = document.createElement('button'); b.className = 'card-song';
   b.append(coverEl(e));
   const t = document.createElement('span'); t.className = 'ct';
-  const best = meta.best[e.id] || meta.best[e.id + '@einfach'] || meta.best[e.id + '@mittel'];
-  t.innerHTML = '<strong>' + esc(e.title) + '</strong><span>' + esc(e.composer || (e.src === 'user' ? e.cat : '')) + '</span>' +
-    '<em>' + DIFF[e.diff] + (e.dur ? ' · ' + fmt(e.dur) : '') + (best ? ' · <b>' + best + ' %</b>' : '') + '</em>';
+  const {lvl, st} = statFor(e), L = LEVELS.find(x => x.k === lvl);
+  t.innerHTML = '<strong>' + esc(e.title) + '</strong><span>' + esc(e.composer || e.artist || (e.src === 'user' ? e.cat : '')) + '</span>' +
+    '<em>' + DIFF[e.diff] + (e.dur ? ' · ' + fmt(e.dur) : '') + '</em>' +
+    '<em class="st">' + statLine(st) + (st && lvl !== 'original' ? ' · ' + L.name : '') + '</em>';
   b.append(t);
   b.addEventListener('click', () => openDetail(e));
   return b;
@@ -1339,10 +1518,24 @@ async function openDetail(e){
   d.innerHTML = '<div class="dwrap"><button class="back" id="dBack">‹ Bibliothek</button><div class="dtop"><div class="dcov"></div><div class="dinfo">' +
     '<h2>' + esc(e.title) + '</h2><p class="dcomp">' + esc(e.composer || '') + '</p>' +
     '<p class="dmeta">' + DIFF[e.diff] + ' (Original)' + (e.dur ? ' · ' + fmt(e.dur) + ' Min.' : '') + '</p><p class="dsrc">' + src + '</p></div></div>' +
+    (e.src === 'user' ? '<div class="edit"><label>Titel <input id="eTitle" maxlength="80"></label><label>Interpret / Komponist <input id="eArtist" maxlength="80" placeholder="z. B. Queen"></label><label class="btn" for="eImg">Eigenes Bild</label><input type="file" id="eImg" accept="image/*"><button class="btn" id="eSave">Speichern</button></div>' : '') +
     '<h3 class="rowh">Fassung wählen</h3><div class="lvls" id="lvls"></div>' +
     '<div class="dact"><button class="primary big" id="dPlay">Üben</button><button id="dFav"></button><button id="dExp">Als MusicXML speichern</button>' + (e.src === 'user' ? '<button id="dDel" class="danger">Löschen</button>' : '') + '</div></div>';
   d.querySelector('.dcov').append(coverEl(e, true));
   $('#dBack').addEventListener('click', () => { d.hidden = true; renderLib(); });
+  if (e.src === 'user') {
+    $('#eTitle').value = e.title; $('#eArtist').value = e.artist || '';
+    const saveRec = async patch => { const rec = await DB.get(e.id); if (!rec) return; Object.assign(rec, patch); await DB.put(rec); baseCache.delete(e.id); await loadLibrary(); const ne = library.find(x => x.id === e.id); if (ne) openDetail(ne); };
+    $('#eSave').addEventListener('click', () => saveRec({title: $('#eTitle').value.trim() || e.title, composer: $('#eArtist').value.trim()}));
+    $('#eImg').addEventListener('change', ev => {
+      const f = ev.target.files[0]; if (!f) return;
+      const im = new Image(); im.onload = () => {
+        const c = document.createElement('canvas'), k = Math.min(1, 480 / Math.max(im.width, im.height)); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(im.src);
+        saveRec({img: c.toDataURL('image/jpeg', 0.82)});
+      }; im.src = URL.createObjectURL(f);
+    });
+  }
   const fav = $('#dFav'); const updFav = () => { fav.textContent = meta.fav[e.id] ? '★ Favorit' : '☆ Favorit'; fav.setAttribute('aria-pressed', String(!!meta.fav[e.id])); };
   updFav(); fav.addEventListener('click', () => { if (meta.fav[e.id]) delete meta.fav[e.id]; else meta.fav[e.id] = true; saveMeta(); updFav(); d.querySelector('.dcov').innerHTML = ''; d.querySelector('.dcov').append(coverEl(e, true)); });
   const lv = $('#lvls');
@@ -1350,8 +1543,8 @@ async function openDetail(e){
     lv.innerHTML = '';
     LEVELS.forEach(L => {
       const b = document.createElement('button'); b.className = 'lvl-card'; b.setAttribute('aria-pressed', String(detailLvl === L.k));
-      const best = meta.best[L.k === 'original' ? e.id : e.id + '@' + L.k];
-      b.innerHTML = '<strong>' + L.name + '</strong><span class="ld">' + (diffs ? DIFF[diffs[L.k]] + ' <i>' + '●'.repeat(diffs[L.k]) + '</i>' : 'wird berechnet …') + '</span><span>' + L.desc + '</span>' + (best ? '<b>Bestwert ' + best + ' %</b>' : '');
+      const st = meta.stats[statKey(e, L.k)];
+      b.innerHTML = '<strong>' + L.name + '</strong><span class="ld">' + (diffs ? DIFF[diffs[L.k]] + ' <i>' + '●'.repeat(diffs[L.k]) + '</i>' : 'wird berechnet …') + '</span><span>' + L.desc + '</span><span class="lst">' + statLine(st) + (st && st.runs ? ' · ' + st.runs + '× gespielt' : '') + '</span>';
       b.addEventListener('click', () => { detailLvl = L.k; drawLv(diffs); });
       lv.append(b);
     });
@@ -1365,7 +1558,7 @@ async function openDetail(e){
   const del = $('#dDel');
   if (del) del.addEventListener('click', async () => {
     if (!del.classList.contains('armed')) { del.classList.add('armed'); del.textContent = 'Wirklich löschen?'; return; }
-    await DB.del(e.id); delete meta.fav[e.id]; LEVELS.forEach(L => delete meta.best[L.k === 'original' ? e.id : e.id + '@' + L.k]);
+    await DB.del(e.id); delete meta.fav[e.id]; LEVELS.forEach(L => delete meta.stats[statKey(e, L.k)]);
     meta.recent = meta.recent.filter(x => x !== e.id); saveMeta(); baseCache.delete(e.id);
     await loadLibrary(); d.hidden = true; renderLib();
     if (S.song && (S.song.baseId || S.song.id) === e.id) selectEntry(library[0], 'original');
@@ -1392,7 +1585,7 @@ $('#fileIn').addEventListener('change', async ev => {
       else throw new Error('Dieses Dateiformat kenne ich nicht. Erlaubt sind .musicxml, .mxl, .xml und .mid.');
       let title = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim(), composer = '';
       if (rec.format === 'xml') { const r = parseMusicXML(rec.data); if (r.title) title = r.title; composer = r.composer || ''; }
-      Object.assign(rec, {id, title, composer, cat:'Importiert', added: Date.now()});
+      Object.assign(rec, {id, title, composer, cat:'Importiert', added: Date.now(), owner: USER && USER.id});
       const song = songFromRecord(rec);
       Object.assign(rec, {dur: song.dur, hands: song.hands, count: song.notes.length, diff: songDiff(song)});
       if (!await DB.put(rec)) errs.push(f.name + ': nur für diese Sitzung geladen, der Gerätespeicher ist nicht verfügbar');
@@ -1610,7 +1803,7 @@ async function analyse(){
   if (events.length < 4) { $('#vstat').textContent = 'Es wurden kaum Noten erkannt (' + events.length + '). Leuchten die Tasten im Video farbig auf? Prüfe den Rahmen und probiere 1×.'; return; }
   const res = eventsToNotes(events, {beats: +$('#vts').value, gap: +$('#vgap').value});
   const title = $('#vtitle').value.trim() || cleanTitle(V.files[0].name);
-  const rec = {id: 'vid-' + Date.now().toString(36), title, composer:'', cat:'Aus Videos', format:'json', data: JSON.stringify(res), added: Date.now()};
+  const rec = {id: 'vid-' + Date.now().toString(36), title, composer:'', cat:'Aus Videos', format:'json', data: JSON.stringify(res), added: Date.now(), owner: USER && USER.id};
   const song = songFromRecord(rec);
   Object.assign(rec, {dur: song.dur, hands: song.hands, count: song.notes.length, diff: songDiff(song)});
   const ok = await DB.put(rec);
@@ -1678,6 +1871,66 @@ function eventsToNotes(ev, opt){
   return {notes, bpm: Math.round(60 / T0), ts: [bar, 4]};
 }
 
+/* ---------- Anmeldung ---------- */
+let loginPick = null;
+function renderProfiles(){
+  const wrap = $('#profiles'); wrap.innerHTML = '';
+  const users = getUsers();
+  users.forEach(u => {
+    const b = document.createElement('button'); b.className = 'prof';
+    b.style.setProperty('--h', (u.name.charCodeAt(0) * 47) % 360);
+    b.innerHTML = '<span class="av">' + esc(u.name.slice(0, 1).toUpperCase()) + '</span><strong>' + esc(u.name) + '</strong><span>' + (u.pin ? 'mit PIN' : 'ohne PIN') + '</span>';
+    b.addEventListener('click', () => { if (u.pin) { loginPick = u; $('#pinWho').textContent = 'PIN für ' + u.name; $('#pinErr').textContent = ''; $('#pinIn').value = ''; showLoginPart('pinForm'); $('#pinIn').focus(); } else login(u); });
+    wrap.append(b);
+  });
+  const add = document.createElement('button'); add.className = 'prof add';
+  add.innerHTML = '<span class="av">+</span><strong>Neues Profil</strong><span>Name und optionale PIN</span>';
+  add.addEventListener('click', () => { $('#newErr').textContent = ''; showLoginPart('newForm'); $('#newName').focus(); });
+  wrap.append(add);
+  $('#loginSub').textContent = users.length ? 'Wer spielt heute?' : 'Lege dein Profil an, um loszulegen.';
+}
+function showLoginPart(id){ ['profiles', 'pinForm', 'newForm'].forEach(x => { $('#' + x).hidden = x !== id; }); }
+function showLogin(){ closeSheets(); renderProfiles(); showLoginPart(getUsers().length ? 'profiles' : 'newForm'); $('#login').hidden = false; }
+$('#pinBack').addEventListener('click', () => showLoginPart('profiles'));
+$('#newBack').addEventListener('click', () => showLoginPart('profiles'));
+$('#pinForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const u = loginPick; if (!u) return;
+  if (await pinHash(u.id, $('#pinIn').value.trim()) === u.pin) login(u);
+  else { $('#pinErr').textContent = 'Die PIN stimmt nicht. Versuche es noch einmal.'; $('#pinIn').select(); }
+});
+$('#newForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const name = $('#newName').value.trim(), pin = $('#newPin').value.trim();
+  if (!name) { $('#newErr').textContent = 'Bitte gib einen Namen ein.'; return; }
+  if (pin && !/^\d{4,8}$/.test(pin)) { $('#newErr').textContent = 'Die PIN muss aus 4 bis 8 Ziffern bestehen.'; return; }
+  const users = getUsers();
+  if (users.some(u => u.name.toLowerCase() === name.toLowerCase())) { $('#newErr').textContent = 'Diesen Namen gibt es schon.'; return; }
+  const u = {id: 'u-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), name, created: Date.now()};
+  try { u.pin = await pinHash(u.id, pin); } catch (err) { $('#newErr').textContent = 'PIN kann hier nicht gespeichert werden. Lege das Profil ohne PIN an.'; return; }
+  users.push(u); LS.set('pianohero.users', users);
+  $('#newName').value = ''; $('#newPin').value = '';
+  login(u);
+});
+async function login(u){
+  USER = u; LS.set('pianohero.session', u.id);
+  meta = loadMeta(u.id); saveMeta();
+  $('#login').hidden = true; $('#q').value = ''; lib.q = ''; lib.diff = 0;
+  $('#userName').textContent = u.name; $('#userAv').textContent = u.name.slice(0, 1).toUpperCase();
+  await loadLibrary();
+  const last = meta.recent[0] && library.find(x => x.id === meta.recent[0]);
+  if (last) await selectEntry(last, meta.lastLevel[last.id] || 'original', true);
+  else selectSong(DEMOS[0]);
+  openSheet('lib');
+}
+function logout(){
+  if (S.playing) togglePlay();
+  commitRun(); USER = null; meta = blankMeta(); LS.del('pianohero.session');
+  showLogin();
+}
+$('#userBtn').addEventListener('click', logout);
+document.addEventListener('visibilitychange', () => { if (document.hidden) { if (S.playing) togglePlay(); else commitRun(); } });
+
 /* ---------- Start ---------- */
 setSeg('mode', S.mode); setSeg('hand', S.hand); setSeg('view', S.view); setSeg('kb', S.kb);
 $('#tempo').value = Math.round(S.tempo * 100); $('#tempoVal').textContent = Math.round(S.tempo * 100) + ' %';
@@ -1686,19 +1939,19 @@ $('#zoom').value = Math.round(S.zoom * 100); $('#zoomVal').textContent = Math.ro
 resize();
 selectSong(DEMOS[0]);
 (async () => {
-  await DB.open(); await migrateOld(); await loadLibrary();
-  const want = library.find(x => x.id === saved.song);
-  if (want && !(want.id === DEMOS[0].id && (saved.level || 'original') === 'original')) await selectEntry(want, saved.level || 'original');
+  await DB.open(); await migrateOld();
+  const sid = LS.get('pianohero.session', null), u = getUsers().find(x => x.id === sid);
+  if (u) await login(u); else showLogin();
 })();
-showBanner('Tippe <b>Klavier verbinden</b>, dann <b>▶ Start</b>. Songs findest du oben über den Titel.', 6000);
 
-let last = performance.now();
+let last = performance.now(), lastAc = 0, lastNow = '', lastSeek = -99;
 function frame(now){
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  let dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (ac && ac.state === 'running') { const at = ac.currentTime; if (lastAc) dt = Math.min(0.1, Math.max(0, at - lastAc)); lastAc = at; } else lastAc = 0;
   if (S.playing && S.song) step(dt * S.tempo);
   if (S.song) {
-    $('#tNow').textContent = fmt(S.t);
-    if (!scrubbing) $('#seek').value = Math.max(0, S.t).toFixed(2);
+    const tn = fmt(S.t); if (tn !== lastNow) { $('#tNow').textContent = tn; lastNow = tn; }
+    if (!scrubbing && Math.abs(lastSeek - S.t) > 0.15) { $('#seek').value = Math.max(0, S.t).toFixed(2); lastSeek = S.t; }
     const b = $('#banner');
     if (S.waiting) {
       const g = gateTime(); const names = g === null ? [] : groupAt(g).filter(n => n.state !== 1).map(n => nm(n.p));
