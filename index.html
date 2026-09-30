@@ -223,6 +223,15 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
 #toPianoTitle{font-weight:600;max-width:180px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
 .sheet.libpage{z-index:9}
 
+
+.vrange{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--stage);border:1px solid var(--line);border-radius:8px;padding:10px}
+.vrange label{display:flex;align-items:center;gap:6px;font-size:.9rem;color:var(--muted)}
+.vrange select{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:inherit;max-width:260px}
+.vrange .rtxt{font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.vrange .rtxt b{color:var(--fg);font-family:var(--f-mono);font-weight:500}
+.rbar{position:relative;height:6px;border-radius:3px;background:var(--raise);margin:-4px 8px 0}
+.rbar i{position:absolute;top:0;bottom:0;background:var(--rh);border-radius:3px}
+
 @media (max-width:700px){
   .stats{gap:12px}
   .stats b{font-size:.95rem}
@@ -335,6 +344,13 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
     <div id="vs2" hidden>
       <div class="vprev"><video id="vid" muted playsinline preload="auto"></video><canvas id="vcv"></canvas></div>
       <label class="slider wide" for="vt"><span>Stelle im Video <b id="vtVal">0:00</b></span><input type="range" id="vt" min="0" max="1" step="0.1" value="0"></label>
+      <div class="rbar" title="Aufnahmebereich"><i id="rbarI"></i></div>
+      <div class="vrange">
+        <label>Video-Teil <select id="vpart"></select></label>
+        <label class="chk"><input type="checkbox" id="rOn" checked> <span>Diesen Teil auswerten</span></label>
+        <span class="rtxt"><span>Aufnahme</span> <b id="rA">0:00</b> – <b id="rB">0:00</b></span>
+        <button class="btn" id="setA">Start hier setzen</button><button class="btn" id="setB">Ende hier setzen</button><button class="btn" id="clrR">Ganzes Video</button>
+      </div>
       <p class="hint" id="calMsg">Wähle eine Stelle, an der die Klaviatur gut zu sehen ist.</p>
       <div class="vrow">
         <button class="btn" id="calBtn">Klaviatur neu erkennen</button>
@@ -393,6 +409,10 @@ const FONT_BODY = css.getPropertyValue('--f-body'), FONT_MONO = css.getPropertyV
 /* ---------- Sprachen: Deutsch (Schlüssel), Englisch, Spanisch ---------- */
 const I18N = {
 'Bibliothek öffnen':['Open library','Abrir biblioteca'],
+'{n} Teile: {l}':['{n} parts: {l}','{n} partes: {l}'], 'Aufnahmebereich':['Recording range','Rango de grabación'],
+'Video-Teil':['Video part','Parte del vídeo'], 'Diesen Teil auswerten':['Analyse this part','Analizar esta parte'], 'Aufnahme':['Recording','Grabación'],
+'Start hier setzen':['Set start here','Fijar inicio aquí'], 'Ende hier setzen':['Set end here','Fijar final aquí'], 'Ganzes Video':['Whole video','Vídeo completo'],
+'Das Ende muss nach dem Start liegen.':['The end must be after the start.','El final debe estar después del inicio.'], 'Wähle mindestens einen Video-Teil aus.':['Select at least one video part.','Selecciona al menos una parte del vídeo.'],
 '‹ Katalog':['‹ Catalogue','‹ Catálogo'], 'Zum Klavier ▸':['To the piano ▸','Al piano ▸'],
 'Genauigkeit':['Accuracy','Precisión'], 'Serie':['Streak','Racha'], 'Fehlgriffe':['Wrong keys','Errores'],
 'Klavier verbinden':['Connect piano','Conectar piano'], 'Abmelden und Profil wechseln':['Log out and switch profile','Cerrar sesión y cambiar de perfil'],
@@ -1818,17 +1838,37 @@ $('#vidIn').addEventListener('change', async e => {
   V.files = Array.from(e.target.files).sort((a, b) => a.name.localeCompare(b.name, 'de', {numeric:true}));
   e.target.value = '';
   if (!V.files.length) return;
-  $('#vidList').textContent = V.files.length === 1 ? V.files[0].name : V.files.length + ' Teile: ' + V.files.map(f => f.name).join(' → ');
+  V.ranges = V.files.map(() => ({a:0, b:null, use:true})); V.cur = 0;
+  const ps = $('#vpart'); ps.innerHTML = '';
+  V.files.forEach((f, i) => { const o = document.createElement('option'); o.value = i; o.textContent = (i + 1) + ': ' + f.name.replace(/\.[^.]+$/, '').slice(0, 60); ps.append(o); });
+  $('#vidList').textContent = V.files.length === 1 ? V.files[0].name : t('{n} Teile: {l}', {n: V.files.length, l: V.files.map(f => f.name).join(' → ')});
   $('#vtitle').value = cleanTitle(V.files[0].name);
   $('#vs2').hidden = false; V.cal = null; V.region = null; $('#anaBtn').disabled = true;
   try {
-    await loadVideo(V.files[0]);
+    await loadVideo(V.files[0]); V.cur = 0; V.ranges[0].dur = vid.duration; updRange();
     $('#vt').max = vid.duration.toFixed(1);
     const t0 = Math.min(vid.duration * 0.35, 120); $('#vt').value = t0;
     await seekTo(t0); fitCanvas(); autoRegion(); drawPreview();
   } catch (err) { vmsg(err.message); }
 });
 $('#vt').addEventListener('input', async e => { $('#vtVal').textContent = fmt(+e.target.value); await seekTo(+e.target.value); drawPreview(); });
+function updRange(){
+  const r = V.ranges && V.ranges[V.cur]; if (!r) return;
+  const d = r.dur || vid.duration || 0, a = r.a, b = r.b === null ? d : r.b;
+  $('#rA').textContent = fmt(a); $('#rB').textContent = fmt(b); $('#rOn').checked = r.use;
+  const pa = d ? 100 * a / d : 0, pb = d ? 100 * b / d : 100;
+  $('#rbarI').style.left = pa + '%'; $('#rbarI').style.width = Math.max(0.5, pb - pa) + '%';
+}
+$('#vpart').addEventListener('change', async e => {
+  const i = +e.target.value; if (V.running || i === V.cur) return;
+  try { await loadVideo(V.files[i]); V.cur = i; V.ranges[i].dur = vid.duration; $('#vt').max = vid.duration.toFixed(1);
+    const r = V.ranges[i], m = (r.a + (r.b === null ? vid.duration : r.b)) / 2; $('#vt').value = m; $('#vtVal').textContent = fmt(m);
+    await seekTo(m); updRange(); drawPreview(); } catch (err) { vmsg(err.message); }
+});
+$('#setA').addEventListener('click', () => { const r = V.ranges[V.cur], t0 = vid.currentTime; r.a = Math.max(0, t0); if (r.b !== null && r.b <= r.a + 1) r.b = null; updRange(); });
+$('#setB').addEventListener('click', () => { const r = V.ranges[V.cur], t1 = vid.currentTime; if (t1 <= r.a + 1) { vmsg(t('Das Ende muss nach dem Start liegen.')); return; } r.b = t1; updRange(); });
+$('#clrR').addEventListener('click', () => { const r = V.ranges[V.cur]; r.a = 0; r.b = null; updRange(); });
+$('#rOn').addEventListener('change', e => { V.ranges[V.cur].use = e.target.checked; });
 function fitCanvas(){ const w = vcv.parentElement.clientWidth; vcv.width = w; vcv.height = Math.round(w * vid.videoHeight / vid.videoWidth); }
 function frameData(r, maxW){
   const k = Math.min(1, maxW / r.w), fw = Math.max(1, Math.round(r.w * k)), fh = Math.max(1, Math.round(r.h * k));
@@ -1963,17 +2003,22 @@ async function analyse(){
   const rate = +$('#vrate').value, keys = V.cal.keys, oct = +$('#c0').value;
   const events = [], state = keys.map(() => ({on:false, cnt:0, t0:0, hues:[], lastSeen:0}));
   let offset = 0;
-  const total = V.files.length;
+  const todo = V.files.map((f, i) => i).filter(i => V.ranges[i].use), total = todo.length;
+  if (!total) { V.running = false; $('#anaBtn').hidden = false; $('#stopBtn').hidden = true; $('#vstat').textContent = t('Wähle mindestens einen Video-Teil aus.'); return; }
   try {
-    for (let fi = 0; fi < V.files.length && !V.stop; fi++) {
-      if (fi > 0) await loadVideo(V.files[fi]);
-      await seekTo(0);
+    for (let k = 0; k < todo.length && !V.stop; k++) {
+      const fi = todo[k];
+      if (V.cur !== fi) { await loadVideo(V.files[fi]); V.cur = fi; }
+      const rg = V.ranges[fi], ra = rg.a, rb = rg.b === null ? vid.duration : Math.min(rg.b, vid.duration);
+      await seekTo(ra);
       vid.playbackRate = rate; vid.muted = true;
       await new Promise((resolve, reject) => {
         let lastT = -1, raf = 0;
         const handle = t => {
           if (t <= lastT) return; lastT = t;
-          const f = frameData(V.region, 960), smp = sampleKeys(f, keys), T = offset + t;
+          if (t < ra - 0.05) return;
+          if (t >= rb) { vid.pause(); cancelAnimationFrame(raf); resolve(); return; }
+          const f = frameData(V.region, 960), smp = sampleKeys(f, keys), T = offset + t - ra;
           for (let i = 0; i < keys.length; i++) {
             const st = state[i], lit = smp[i] >= 0;
             if (lit !== st.on) { st.cnt++; if (st.cnt === 1) st.tc = T; if (st.cnt >= 2) {
@@ -1982,17 +2027,17 @@ async function analyse(){
               st.cnt = 0; } }
             else { st.cnt = 0; if (lit && st.hues.length < 40) st.hues.push(smp[i]); }
           }
-          const pr = (fi + Math.min(1, t / vid.duration)) / total;
+          const pr = (k + Math.min(1, (t - ra) / Math.max(1, rb - ra))) / total;
           $('#vprog i').style.width = (pr * 100).toFixed(1) + '%';
-          $('#vstat').textContent = tr('Teil {i} von {n} · {t} · {e} Noten bisher', {i: fi + 1, n: total, t: fmt(t) + ' / ' + fmt(vid.duration), e: events.length});
+          $('#vstat').textContent = tr('Teil {i} von {n} · {t} · {e} Noten bisher', {i: k + 1, n: total, t: fmt(t) + ' / ' + fmt(rb), e: events.length});
           if (V.stop) { vid.pause(); resolve(); }
         };
         const useVFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
-        const loop = (now, md) => { if (vid.ended || V.stop) return; handle(md ? md.mediaTime : vid.currentTime); if (useVFC) vid.requestVideoFrameCallback(loop); else raf = requestAnimationFrame(() => loop()); };
+        let fin = false; const loop = (now, md) => { if (vid.ended || V.stop || vid.paused) return; handle(md ? md.mediaTime : vid.currentTime); if (useVFC) vid.requestVideoFrameCallback(loop); else raf = requestAnimationFrame(() => loop()); };
         vid.onended = () => { cancelAnimationFrame(raf); resolve(); };
         vid.play().then(() => { if (useVFC) vid.requestVideoFrameCallback(loop); else loop(); }).catch(reject);
       });
-      const endT = offset + (vid.duration || 0);
+      const endT = offset + Math.max(0, rb - ra);
       state.forEach((st, i) => { if (st.on) { events.push({p: 12 * (oct + 1) + keys[i].rel, t0: st.t0, t1: endT, hue: circMean(st.hues)}); st.on = false; } st.cnt = 0; });
       offset = endT + 2;
     }
