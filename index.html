@@ -218,6 +218,11 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
 .emptyrow{max-width:62ch;background:var(--panel);border:1px dashed var(--line);border-radius:10px;padding:14px;margin:0}
 .edit select{background:var(--stage);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--fg);font:inherit}
 
+
+.backcat{font-weight:600;padding:8px 14px}
+#toPianoTitle{font-weight:600;max-width:180px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+.sheet.libpage{z-index:9}
+
 @media (max-width:700px){
   .stats{gap:12px}
   .stats b{font-size:.95rem}
@@ -231,7 +236,8 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
 <body>
 <div class="app">
   <header class="top">
-    <button id="songBtn" class="song-btn" aria-label="Bibliothek öffnen"><span class="brand">Piano Hero</span><span id="songTitle">–</span><span id="songLevel" class="lvlpill" hidden></span><span class="caret">▾</span></button>
+    <button id="backCat" class="btn backcat">‹ Katalog</button>
+    <button id="songBtn" class="song-btn" aria-label="Bibliothek öffnen"><span id="songTitle">–</span><span id="songLevel" class="lvlpill" hidden></span><span class="caret">▾</span></button>
     <div class="stats" aria-live="polite">
       <div><b id="stAcc">–</b><span>Genauigkeit</span></div>
       <div><b id="stStreak">0</b><span>Serie</span></div>
@@ -310,7 +316,8 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
         <input type="file" id="fileIn" accept=".mid,.midi,.musicxml,.xml,.mxl,audio/midi,audio/x-midi,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" multiple>
         <button class="btn" id="videoBtn">Noten aus Video</button>
         <select class="langSel" aria-label="Sprache"><option value="de">Deutsch</option><option value="en">English</option><option value="es">Español</option></select>
-        <button class="btn" data-close>Schließen</button>
+        <button class="btn" id="toPiano" hidden>Zum Klavier ▸ <span id="toPianoTitle"></span></button>
+        <button id="libUser" class="chip userchip" title="Abmelden und Profil wechseln"><span class="av" id="libUserAv">?</span><span id="libUserName">Profil</span><span class="caret">⇄</span></button>
       </div>
     </header>
     <div class="chips" id="diffChips" aria-label="Nach Schwierigkeit filtern"></div>
@@ -386,6 +393,7 @@ const FONT_BODY = css.getPropertyValue('--f-body'), FONT_MONO = css.getPropertyV
 /* ---------- Sprachen: Deutsch (Schlüssel), Englisch, Spanisch ---------- */
 const I18N = {
 'Bibliothek öffnen':['Open library','Abrir biblioteca'],
+'‹ Katalog':['‹ Catalogue','‹ Catálogo'], 'Zum Klavier ▸':['To the piano ▸','Al piano ▸'],
 'Genauigkeit':['Accuracy','Precisión'], 'Serie':['Streak','Racha'], 'Fehlgriffe':['Wrong keys','Errores'],
 'Klavier verbinden':['Connect piano','Conectar piano'], 'Abmelden und Profil wechseln':['Log out and switch profile','Cerrar sesión y cambiar de perfil'],
 'Profil':['Profile','Perfil'], 'Hilfe':['Help','Ayuda'], '▶ Start':['▶ Start','▶ Iniciar'], '❚❚ Pause':['❚❚ Pause','❚❚ Pausa'], '↺ Von vorn':['↺ Restart','↺ Desde el inicio'],
@@ -924,52 +932,61 @@ const LEVELS = [
 function levelNotes(base, lvl){
   if (lvl === 'original') return base.notes;
   const ts = base.ts || [4,4], bar = ts[0] * 4 / ts[1], compound = ts[1] === 8 && ts[0] % 3 === 0;
-  const unit = lvl === 'einfach' ? (compound ? 1.5 : bar >= 4 && bar % 2 === 0 ? 2 : bar) : (compound ? 1.5 : 1);
+  const beat = compound ? 1.5 : 1, easy = lvl === 'einfach';
   const R = base.notes.filter(n => n.h === 'R'), L = base.notes.filter(n => n.h === 'L');
   const out = [];
   const group = (list, u) => { const g = new Map(); list.forEach(n => { const k = Math.floor(n.b / u + 1e-6); (g.get(k) || g.set(k, []).get(k)).push(n); }); return Array.from(g.entries()).sort((a,b) => a[0]-b[0]); };
-  const chordify = (list, u, maxN, avoid) => {
-    const gs = group(list, u);
+  // Begleitfiguren (gebrochene Akkorde) je Schlag zu einem Akkord zusammenfassen; bei "Einfach" gleiche Akkorde verbinden
+  const chordify = (list, maxN, avoid) => {
+    const gs = group(list, beat); let prev = null;
     gs.forEach(([k, ns], i) => {
-      const b = Math.min(...ns.map(n => n.b)), next = i + 1 < gs.length ? Math.min(...gs[i+1][1].map(n => n.b)) : b + u;
+      const b = Math.min(...ns.map(n => n.b)), next = i + 1 < gs.length ? Math.min(...gs[i+1][1].map(n => n.b)) : b + beat;
       let ps = Array.from(new Set(ns.map(n => n.p))).filter(p => !avoid.has(Math.round(b * 4) + ':' + p)).sort((a,c) => a - c);
-      if (ps.length > maxN) ps = ps.slice(ps.length - maxN);
-      const db = Math.max(0.25, Math.min(next - b, u * 2));
-      ps.forEach(p => out.push({p, b, db, h:'R', v:2}));
+      if (ps.length > maxN) ps = ps.slice(0, maxN);
+      if (!ps.length) { prev = null; return; }
+      const db = Math.max(0.25, Math.min(next - b, beat));
+      const key = ps.join(','), sameBar = prev && Math.floor(prev.b / bar + 1e-6) === Math.floor(b / bar + 1e-6);
+      if (easy && prev && prev.key === key && sameBar && Math.abs(prev.b + prev.db - b) < 0.02) { prev.db += db; prev.notes.forEach(n => { n.db = prev.db; }); return; }
+      const notes = ps.map(p => ({p, b, db, h:'R', v:2}));
+      notes.forEach(n => out.push(n));
+      prev = {key, b, db, notes};
     });
   };
-  // je Takt: Begleitfiguren (viele Anschläge, wenige verschiedene Töne) zu Akkorden zusammenfassen
   const bars = new Map();
   R.forEach(n => { const k = Math.floor(n.b / bar + 1e-6); (bars.get(k) || bars.set(k, []).get(k)).push(n); });
   const fig = [], keep = [], top = [];
   bars.forEach(ns => {
     const vs = new Map(); ns.forEach(n => { const v = n.v || 1; (vs.get(v) || vs.set(v, []).get(v)).push(n); });
     const info = Array.from(vs.entries()).map(([v, list]) => {
-      const onsets = new Set(list.map(n => Math.round(n.b * 48))).size, distinct = new Set(list.map(n => n.p)).size;
-      const short = list.every(n => n.db <= 0.51);
-      return {v, list, isFig: short && ((onsets >= 6 && distinct / onsets <= 0.45) || (onsets >= 9 && distinct / onsets <= 0.6)), mean: list.reduce((s2, n) => s2 + n.p, 0) / list.length};
+      const byOn = new Map(); list.forEach(n => { const k = Math.round(n.b * 48); const c = byOn.get(k); if (!c || n.p > c.p) byOn.set(k, n); });
+      const line = Array.from(byOn.values()).sort((a, c) => a.b - c.b);
+      let jump = 0; for (let i = 1; i < line.length; i++) jump += Math.abs(line[i].p - line[i-1].p);
+      jump = line.length > 1 ? jump / (line.length - 1) : 0;
+      const short = list.every(n => n.db <= 0.51), rate = line.length / bar;
+      return {v, list, isFig: short && rate >= 2.5 && jump >= 3, mean: list.reduce((s2, n) => s2 + n.p, 0) / list.length};
     });
     const mel = info.filter(x => !x.isFig).sort((x, y) => y.mean - x.mean)[0];
     info.forEach(x => {
       if (x.isFig) fig.push(...x.list);
-      else if (x === mel) (lvl === 'einfach' ? top : keep).push(...x.list);
-      else (lvl === 'einfach' ? fig : keep).push(...x.list);
+      else if (x === mel) (easy ? top : keep).push(...x.list);
+      else (easy ? fig : keep).push(...x.list);
     });
   });
   const on = new Map(); top.forEach(n => { const k = Math.round(n.b * 16); const c = on.get(k); if (!c || n.p > c.p) on.set(k, n); });
   const melody = keep.concat(Array.from(on.values()));
   melody.forEach(n => out.push({...n}));
-  chordify(fig, unit, lvl === 'einfach' ? 3 : 4, new Set(melody.map(n => Math.round(n.b * 4) + ':' + n.p)));
-  if (lvl === 'mittel') {
-    const on = new Map(); L.forEach(n => { const k = Math.round(n.b * 16); const c = on.get(k); if (!c || n.p < c.p) on.set(k, n); });
-    on.forEach(n => out.push({...n}));
+  chordify(fig, easy ? 3 : 4, new Set(melody.map(n => Math.round(n.b * 4) + ':' + n.p)));
+  if (!easy) {
+    const lo = new Map(); L.forEach(n => { const k = Math.round(n.b * 16); const c = lo.get(k); if (!c || n.p < c.p) lo.set(k, n); });
+    lo.forEach(n => out.push({...n}));
   } else {
+    const unit = compound ? 1.5 : bar >= 4 && bar % 2 === 0 ? 2 : bar;
     const gs = group(L, unit);
     gs.forEach(([k, ns], i) => {
       const b = Math.min(...ns.map(n => n.b)), first = ns.filter(n => n.b <= b + 1e-6);
       const low = first.reduce((m, n) => n.p < m.p ? n : m, first[0]);
       const next = i + 1 < gs.length ? Math.min(...gs[i+1][1].map(n => n.b)) : b + unit;
-      out.push({p: low.p, b, db: Math.max(0.25, Math.min(next - b, unit * 2)), h:'L', v:5});
+      out.push({p: low.p, b, db: Math.max(0.25, Math.min(next - b, Math.max(low.db, 0.25), unit * 2)), h:'L', v:5});
     });
   }
   return out;
@@ -1420,7 +1437,8 @@ const typing = el => el && (el.tagName === 'INPUT' && el.type !== 'range' || el.
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey || typing(e.target)) return;
   if (!$('#login').hidden) return;
-  if (!$('#lib').hidden || !$('#help').hidden || !$('#video').hidden) { if (e.key === 'Escape') closeSheets(); return; }
+  if (!$('#help').hidden || !$('#video').hidden) { if (e.key === 'Escape') closeSheets(); return; }
+  if (!$('#lib').hidden) return;
   if (e.code === 'Space' && e.target.tagName !== 'BUTTON') { e.preventDefault(); togglePlay(); return; }
   const p = KB[e.key.toLowerCase()]; if (p === undefined || e.repeat) return;
   noteOn(p, 'key');
@@ -1455,7 +1473,6 @@ function togglePlay(){
   wake(S.playing); updPlay();
 }
 async function selectEntry(entry, lvl, quiet){
-  pendingLast = null;
   lvl = lvl || 'original';
   let song;
   try { const base = await loadBase(entry); song = getVariant(base, lvl); }
@@ -1527,13 +1544,31 @@ toggleBtn('#soundBtn', 'sound'); toggleBtn('#namesBtn', 'names');
 /* ---------- Bibliothek ---------- */
 const lib = {q:'', diff:0};
 function openSheet(id){
-  document.querySelectorAll('.sheet').forEach(s => { s.hidden = s.id !== id; });
-  if (id === 'lib') { $('#detail').hidden = true; renderLib(); }
+  if (id === 'lib') { showCatalog(); return; }
+  document.querySelectorAll('.sheet:not(.libpage)').forEach(s => { s.hidden = s.id !== id; });
 }
-function closeSheets(){ document.querySelectorAll('.sheet').forEach(s => { s.hidden = true; }); if (pendingLast && USER) { const p = pendingLast; pendingLast = null; selectEntry(p.e, p.l); } }
+let chosenSong = false;
+function showCatalog(fromPop){
+  if (S.playing) togglePlay(); else commitRun();
+  closeSheets(); $('#detail').hidden = true; $('#lib').hidden = false; renderLib();
+  $('#toPiano').hidden = !chosenSong;
+  if (chosenSong) $('#toPianoTitle').textContent = $('#songTitle').textContent;
+  if (!fromPop && history.state && history.state.v === 'player') history.back();
+}
+function showPlayer(){
+  chosenSong = true; closeSheets(); $('#lib').hidden = true; $('#detail').hidden = true;
+  if (!history.state || history.state.v !== 'player') { try { history.pushState({v:'player'}, ''); } catch(e){} }
+  resize(); if (S.view === 'sheet') setTimeout(() => updCursor(true), 50);
+}
+window.addEventListener('popstate', () => { if (USER && $('#lib').hidden) showCatalog(true); });
+try { history.replaceState({v:'catalog'}, ''); } catch(e){}
+function closeSheets(){ document.querySelectorAll('.sheet:not(.libpage)').forEach(s => { s.hidden = true; }); }
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
 document.querySelectorAll('.sheet:not(.libpage)').forEach(s => s.addEventListener('click', e => { if (e.target === s) closeSheets(); }));
-$('#songBtn').addEventListener('click', () => { if (S.playing) togglePlay(); openSheet('lib'); });
+$('#songBtn').addEventListener('click', () => showCatalog());
+$('#backCat').addEventListener('click', () => showCatalog());
+$('#toPiano').addEventListener('click', showPlayer);
+$('#libUser').addEventListener('click', () => logout());
 $('#helpBtn').addEventListener('click', () => openSheet('help'));
 $('#q').addEventListener('input', e => { lib.q = e.target.value.trim().toLowerCase(); renderLib(); });
 
@@ -1714,7 +1749,7 @@ async function openDetail(e){
     });
   };
   drawLv(null);
-  $('#dPlay').addEventListener('click', async () => { if (await selectEntry(e, detailLvl)) closeSheets(); });
+  $('#dPlay').addEventListener('click', async () => { if (await selectEntry(e, detailLvl)) showPlayer(); });
   $('#dExp').addEventListener('click', async () => {
     try { const base = await loadBase(e), v = getVariant(base, detailLvl); download((e.title + (detailLvl === 'original' ? '' : ' ' + detailLvl)).replace(/[\\/:*?"<>|]+/g, '') + '.musicxml', v.xml); }
     catch (err) { showBanner(esc(err.message), 4000); }
@@ -1974,7 +2009,7 @@ async function analyse(){
   await loadLibrary();
   $('#vstat').textContent = '';
   const en = library.find(x => x.id === rec.id);
-  if (en && await selectEntry(en, 'original')) closeSheets();
+  if (en && await selectEntry(en, 'original')) showPlayer();
   showBanner(t('<b>{n}</b> Noten erkannt · Tempo ca. <b>{b}</b> BPM', {n: res.notes.length, b: res.bpm}) + (V.stop ? t(' · Auswertung vorzeitig beendet') : '') + (ok ? '' : t(' · nur für diese Sitzung gespeichert')), 7000);
 }
 function circMean(hs){ if (!hs.length) return 0; let x = 0, y = 0; hs.forEach(h => { x += Math.cos(h * Math.PI / 180); y += Math.sin(h * Math.PI / 180); }); return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360; }
@@ -2036,7 +2071,7 @@ function eventsToNotes(ev, opt){
 }
 
 /* ---------- Anmeldung ---------- */
-let loginPick = null, pendingLast = null;
+let loginPick = null;
 function renderProfiles(){
   const wrap = $('#profiles'); wrap.innerHTML = '';
   const users = getUsers();
@@ -2054,7 +2089,7 @@ function renderProfiles(){
   $('#loginSub').textContent = users.length ? t('Wer spielt heute?') : t('Lege dein Profil an, um loszulegen.');
 }
 function showLoginPart(id){ ['profiles', 'pinForm', 'newForm'].forEach(x => { $('#' + x).hidden = x !== id; }); }
-function showLogin(){ closeSheets(); renderProfiles(); showLoginPart(getUsers().length ? 'profiles' : 'newForm'); $('#login').hidden = false; }
+function showLogin(){ closeSheets(); $('#lib').hidden = true; renderProfiles(); showLoginPart(getUsers().length ? 'profiles' : 'newForm'); $('#login').hidden = false; }
 $('#pinBack').addEventListener('click', () => showLoginPart('profiles'));
 $('#newBack').addEventListener('click', () => showLoginPart('profiles'));
 $('#pinForm').addEventListener('submit', async ev => {
@@ -2077,18 +2112,17 @@ $('#newForm').addEventListener('submit', async ev => {
   login(u);
 });
 async function login(u){
-  USER = u; LS.set('pianohero.session', u.id);
+  USER = u;
   meta = loadMeta(u.id); saveMeta();
   $('#login').hidden = true; $('#q').value = ''; lib.q = ''; lib.diff = 0;
   $('#userName').textContent = u.name; $('#userAv').textContent = u.name.slice(0, 1).toUpperCase();
   await loadLibrary();
-  openSheet('lib');
-  const last = meta.recent[0] && library.find(x => x.id === meta.recent[0]);
-  pendingLast = last ? {e: last, l: meta.lastLevel[last.id] || 'original'} : null;
+  $('#libUserName').textContent = u.name; $('#libUserAv').textContent = u.name.slice(0, 1).toUpperCase();
+  chosenSong = false; showCatalog(true);
 }
 function logout(){
   if (S.playing) togglePlay();
-  commitRun(); USER = null; meta = blankMeta(); LS.del('pianohero.session');
+  commitRun(); USER = null; meta = blankMeta(); LS.del('pianohero.session'); chosenSong = false;
   showLogin();
 }
 $('#userBtn').addEventListener('click', logout);
@@ -2111,8 +2145,8 @@ resize();
 selectSong(DEMOS[0]);
 (async () => {
   await DB.open(); await migrateOld();
-  const sid = LS.get('pianohero.session', null), u = getUsers().find(x => x.id === sid);
-  if (u) await login(u); else showLogin();
+  LS.del('pianohero.session');
+  showLogin();
 })();
 
 let last = performance.now(), lastAc = 0, lastNow = '', lastSeek = -99;
