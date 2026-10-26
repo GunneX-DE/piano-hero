@@ -239,6 +239,48 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
 .lvls.single .lst b{color:var(--fg)}
 .ct em.vers{color:var(--rh)}
 
+
+#scFile,#scCam,#dAttach{position:absolute;opacity:0;width:1px;height:1px}
+.scpages{display:flex;gap:12px;flex-wrap:wrap}
+.scpg{background:#fff;border-radius:6px;overflow:hidden;border:1px solid var(--line);display:flex;flex-direction:column;width:150px}
+.scpg canvas{width:100%;height:auto;display:block}
+.scbar{display:flex;gap:4px;align-items:center;justify-content:space-between;background:var(--raise);padding:4px 6px;font-family:var(--f-mono);font-size:.8rem}
+.scbar button{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:2px 7px;color:var(--fg)}
+.chk{display:flex;align-items:center;gap:6px}
+.scanview{position:fixed;inset:0;z-index:8;background:var(--stage);display:flex;flex-direction:column;gap:8px;padding-inline:16px;padding-block:8px}
+.svhead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.svhead strong{font-family:var(--f-display);font-size:1.2rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:40ch}
+.svpage{color:var(--muted);font-family:var(--f-mono);font-size:.85rem;margin-right:auto}
+.svhead .btn[aria-pressed="true"]{border-color:var(--rh);color:var(--rh)}
+.metro input,.metro select{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;width:70px}
+.metro select{width:auto}
+.svbody{flex:1 1 auto;min-height:0;overflow:auto;background:#fff;border-radius:10px;display:flex;justify-content:center;align-items:flex-start}
+.svbody img{width:100%;height:auto;display:block}
+.svbody.fitpage img{width:auto;height:100%;max-width:100%;object-fit:contain}
+#svKb{flex:0 0 auto;height:clamp(60px,12vh,100px);width:100%;border-radius:8px}
+.banner.top{position:fixed;z-index:40;top:max(12px,env(safe-area-inset-top,0px))}
+.oebody{display:block;position:relative}
+.oewrap{position:relative;margin:0 auto;min-width:100%}
+.oewrap img{width:100%;height:auto;display:block}
+#oeSvg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#oeSvg .mk circle{fill:none;stroke-width:2.5;vector-effect:non-scaling-stroke}
+#oeSvg .mk text{font-family:var(--f-mono);font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:3px;vector-effect:non-scaling-stroke}
+#oeSvg .rh circle{stroke:#d9480f}#oeSvg .rh text{fill:#b23c0c}
+#oeSvg .lh circle{stroke:#1c7ed6}#oeSvg .lh text{fill:#1864ab}
+#oeSvg .fx circle{stroke:#2b8a3e}#oeSvg .fx text{fill:#2b8a3e}
+#oeSvg .sel circle{fill:rgba(250,176,5,.45);stroke:#f08c00;stroke-width:4}
+#oeSvg .oeerr{fill:#c92a2a;font-family:var(--f-body)}
+.oebar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.oeinfo{flex:1 1 220px;min-width:0;font-size:.95rem}
+.oebar .btn[aria-pressed="true"],.svhead .btn[aria-pressed="true"]{border-color:var(--rh);color:var(--rh)}
+.oebar .btn:disabled{opacity:.45}
+.oesel{display:flex;align-items:center;gap:6px;font-size:.9rem}
+.oesel select{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}
+#bkLoad{position:absolute;opacity:0;width:1px;height:1px}
+.dstat{font-size:.95rem;line-height:1.6}
+.dstat .warn{color:var(--bad)}
+.shbig{font-family:var(--f-display);font-size:1.15rem}
+
 @media (max-width:700px){
   .stats{gap:12px}
   .stats b{font-size:.95rem}
@@ -329,8 +371,10 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
       <input type="search" id="q" placeholder="Titel oder Komponist suchen" aria-label="Songs durchsuchen" autocomplete="off">
       <div class="lib-actions">
         <label class="btn primary" for="fileIn">Datei importieren</label>
-        <input type="file" id="fileIn" accept=".mid,.midi,.musicxml,.xml,.mxl,audio/midi,audio/x-midi,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" multiple>
+        <input type="file" id="fileIn" accept=".mid,.midi,.musicxml,.xml,.mxl,.json,.txt,application/json,text/plain,audio/midi,audio/x-midi,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" multiple>
         <button class="btn" id="videoBtn">Noten aus Video</button>
+        <button class="btn" id="scanBtn">Noten scannen</button>
+        <button class="btn" id="dataBtn">Sicherung</button>
         <select class="langSel" aria-label="Sprache"><option value="de">Deutsch</option><option value="en">English</option><option value="es">Español</option></select>
         <button class="btn" id="toPiano" hidden>Zum Klavier ▸ <span id="toPianoTitle"></span></button>
         <button id="libUser" class="chip userchip" title="Abmelden und Profil wechseln"><span class="av" id="libUserAv">?</span><span id="libUserName">Profil</span><span class="caret">⇄</span></button>
@@ -338,9 +382,101 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
     </header>
     <div class="chips" id="diffChips" aria-label="Nach Schwierigkeit filtern"></div>
     <div id="libBody"></div>
-    <p class="hint credit" data-i18n-html="credit">Bilder: Wikipedia / Wikimedia Commons (werden bei Internetverbindung geladen). Klassische Stücke: Notenvorlagen aus der <a href="https://github.com/musetrainer/library" target="_blank" rel="noopener">MuseTrainer Library</a> (gemeinfrei). Jede Fassung „Einfach“ und „Mittel“ erzeugt die App automatisch aus dem Original. Die Schwierigkeit ist eine Schätzung aus Notendichte und Anteil schwarzer Tasten.</p>
+    <p class="hint credit" data-i18n-html="credit">Bilder: Wikipedia / Wikimedia Commons (werden bei Internetverbindung geladen). Klassische Stücke: Notenvorlagen aus der <a href="https://github.com/musetrainer/library" target="_blank" rel="noopener">MuseTrainer Library</a> (gemeinfrei). Eine Fassung „Leicht“ gibt es nur, wenn die Notensammlung eine echte vereinfachte Bearbeitung enthält. Die Schwierigkeit ist eine Schätzung aus Notendichte und Anteil schwarzer Tasten.</p>
   </div>
   <div class="detail" id="detail" hidden></div>
+</div>
+
+<div class="sheet" id="scan" hidden>
+  <div class="card vcard" role="dialog" aria-labelledby="scanH">
+    <div class="head"><h2 id="scanH">Noten scannen</h2><button class="close" data-close>Schließen</button></div>
+    <p class="hint" data-i18n-html="scanhint">Füge eingescannte Noten als PDF oder Bilder hinzu oder fotografiere sie mit der Kamera. Die App erkennt gedruckte Klaviernoten und macht daraus ein spielbares Lied, auch für den Modus „Warten“. Die Erkennung ist nicht fehlerfrei: Prüfe das Ergebnis im Korrektur-Editor. Am besten klappt es mit sauberen PDFs oder geraden, hellen Fotos ohne Schatten. Handschrift wird nicht erkannt.</p>
+    <div class="vrow">
+      <label class="btn primary" for="scFile">PDF oder Bilder wählen</label><input type="file" id="scFile" accept="application/pdf,image/*" multiple>
+      <label class="btn" for="scCam">Foto aufnehmen</label><input type="file" id="scCam" accept="image/*" capture="environment">
+      <span class="hint" id="scStat"></span>
+    </div>
+    <div class="scpages" id="scPages"></div>
+    <div class="vrow">
+      <label class="grow">Titel <input type="text" id="scTitle" maxlength="80"></label>
+      <label class="grow">Interpret / Komponist <input type="text" id="scArtist" maxlength="80"></label>
+    </div>
+    <div class="vrow">
+      <label>Schwierigkeit <select id="scDiff"><option value="0">offen</option><option value="1">Einsteiger</option><option value="2">Grundstufe</option><option value="3">Mittelstufe</option><option value="4">Fortgeschritten</option><option value="5">Konzertreif</option></select></label>
+      <label class="chk"><input type="checkbox" id="scEnh" checked> <span>Kontrast verbessern (für Fotos)</span></label>
+      <label class="chk"><input type="checkbox" id="scOmr" checked> <span>Noten automatisch erkennen</span></label>
+      <button class="btn primary" id="scSave" disabled>In Bibliothek speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="scanview" id="scanview" hidden>
+  <header class="svhead">
+    <button class="btn backcat" id="svBack">‹ Katalog</button>
+    <strong id="svTitle"></strong>
+    <span id="svPage" class="svpage"></span>
+    <div class="grp"><button class="btn" id="svPrev">◀</button><button class="btn" id="svNext">▶</button></div>
+    <button class="btn" id="svFit">Ganze Seite</button>
+    <div class="grp metro"><button class="btn" id="svMetro" aria-pressed="false">Metronom</button><input type="number" id="svBpm" min="30" max="240" value="80" aria-label="BPM"><select id="svBeats" aria-label="Taktart"><option value="4">4/4</option><option value="3">3/4</option><option value="2">2/4</option><option value="6">6/8</option></select></div>
+    <button class="btn" id="svMidi">Klavier verbinden</button>
+  </header>
+  <div class="svbody" id="svBody"><img id="svImg" alt=""></div>
+  <canvas id="svKb"></canvas>
+</div>
+
+<div class="scanview" id="omred" hidden>
+  <header class="svhead">
+    <button class="btn backcat" id="oeBack">‹ Zurück</button>
+    <strong id="oeTitle"></strong>
+    <span id="oePage" class="svpage"></span>
+    <div class="grp"><button class="btn" id="oePrev" aria-label="Vorherige Seite">◀</button><button class="btn" id="oeNext" aria-label="Nächste Seite">▶</button></div>
+    <div class="grp"><button class="btn" id="oeZoomOut" aria-label="Verkleinern">−</button><button class="btn" id="oeZoomIn" aria-label="Vergrößern">+</button></div>
+    <label class="oesel">Tonart <select id="oeKey"></select></label>
+    <label class="oesel">Takt <select id="oeTime"></select></label>
+    <button class="btn" id="oeListen">▶ Anhören</button>
+    <button class="btn" id="oeMidi">Klavier verbinden</button>
+    <button class="btn primary" id="oeDone">Fertig · Üben</button>
+  </header>
+  <div class="svbody oebody" id="oeBody"><div class="oewrap" id="oeWrap"><img id="oeImg" alt=""><svg id="oeSvg" xmlns="http://www.w3.org/2000/svg"></svg></div></div>
+  <div class="oebar">
+    <span class="oeinfo" id="oeInfo"></span>
+    <div class="grp"><button class="btn" id="oePrevN" aria-label="Vorherige Note">‹ Note</button><button class="btn" id="oeNextN" aria-label="Nächste Note">Note ›</button></div>
+    <div class="grp"><button class="btn" id="oeDown" aria-label="Halbton tiefer">▼</button><button class="btn" id="oeUp" aria-label="Halbton höher">▲</button></div>
+    <div class="grp" id="oeDur"><button class="btn" data-d="4">Ganze</button><button class="btn" data-d="2">Halbe</button><button class="btn" data-d="1">Viertel</button><button class="btn" data-d="0.5">Achtel</button><button class="btn" data-d="0.25">16tel</button></div>
+    <button class="btn" id="oeDot">Punkt</button>
+    <button class="btn" id="oeHand">Hand: rechts</button>
+    <button class="btn" id="oeDel">Löschen</button>
+    <button class="btn" id="oeAdd" aria-pressed="false">+ Note</button>
+    <button class="btn" id="oeUndo">↶ Rückgängig</button>
+  </div>
+</div>
+
+<div class="sheet" id="data" hidden>
+  <div class="card vcard" role="dialog" aria-labelledby="dataH">
+    <div class="head"><h2 id="dataH">Daten und Sicherung</h2><button class="close" data-close>Schließen</button></div>
+    <p class="hint" data-i18n-html="datahint">Deine Lieder, Profile und Fortschritte werden im Browser auf diesem Gerät gespeichert. Ein Update der App (neue index.html auf GitHub) löscht sie nicht. Verloren gehen sie nur, wenn du in Chrome die Websitedaten löschst, die App unter einer anderen Adresse öffnest oder das Gerät wechselst. Speichere deshalb ab und zu eine Sicherung, zum Beispiel in Google Drive. Mit „Sicherung laden“ holst du alles zurück, auch auf einem anderen Gerät. Tipp: Füge die App im Chrome-Menü mit „Zum Startbildschirm hinzufügen“ hinzu, dann schützt Chrome den Speicher eher dauerhaft.</p>
+    <p class="dstat" id="dataStat"></p>
+    <div class="vrow"><button class="btn primary" id="bkSave">Sicherung speichern</button><button class="btn" id="bkShare">Sicherung teilen …</button><label class="btn" for="bkLoad">Sicherung laden</label><input type="file" id="bkLoad" accept=".json,.txt,application/json,text/plain"></div>
+  </div>
+</div>
+
+<div class="sheet" id="share" hidden>
+  <div class="card vcard" role="dialog" aria-labelledby="shareH">
+    <div class="head"><h2 id="shareH">Lied teilen</h2><button class="close" data-close>Schließen</button></div>
+    <p class="shbig" id="shTitle"></p>
+    <label class="chk" id="shLocalRow"><input type="checkbox" id="shLocal"> <span>Für alle Profile auf diesem Gerät freigeben</span></label>
+    <p class="hint" data-i18n-html="sharehint">Für andere Geräte: Schicke das Lied als Datei, zum Beispiel per WhatsApp, E-Mail oder Google Drive. Der Empfänger öffnet Piano Hero und tippt in der Bibliothek auf „Datei importieren“. Ein Link enthält nur die Noten, keine Scan-Bilder.</p>
+    <div class="vrow"><button class="btn primary" id="shFile">Als Datei teilen</button><button class="btn" id="shDl">Datei speichern</button><button class="btn" id="shLink">Link teilen</button></div>
+    <p class="hint" id="shStat"></p>
+  </div>
+</div>
+
+<div class="sheet" id="incoming" hidden>
+  <div class="card vcard" role="dialog" aria-labelledby="inH">
+    <div class="head"><h2 id="inH">Geteiltes Lied</h2><button class="close" data-close>Schließen</button></div>
+    <p class="shbig" id="inTitle"></p><p class="hint" id="inFrom"></p>
+    <div class="vrow"><button class="btn primary" id="inOk">In meine Bibliothek übernehmen</button><button class="btn" data-close>Abbrechen</button></div>
+  </div>
 </div>
 
 <div class="sheet" id="video" hidden>
@@ -415,7 +551,103 @@ const C = {}; ['stage','panel','raise','line','fg','muted','rh','lh','ok','bad',
 const FONT_BODY = css.getPropertyValue('--f-body'), FONT_MONO = css.getPropertyValue('--f-mono');
 /* ---------- Sprachen: Deutsch (Schlüssel), Englisch, Spanisch ---------- */
 const I18N = {
+'Die Erkennung läuft bereits.':['Recognition is already running.','El reconocimiento ya está en marcha.'],
+'Notenerkennung für „{t}“ ist fertig. Prüfen kannst du sie auf der Song-Seite mit „Erkennung bearbeiten“.':['Note recognition for “{t}” is done. You can check it on the song page with “Edit recognition”.','El reconocimiento de «{t}» ha terminado. Puedes revisarlo en la página de la canción con «Editar reconocimiento».'],
+"Sicherung":["Backup", "Copia de seguridad"],
+"Noten automatisch erkennen":["Recognise notes automatically", "Reconocer notas automáticamente"],
+"‹ Zurück":["‹ Back", "‹ Volver"],
+"Tonart":["Key", "Tonalidad"],
+"Takt":["Time", "Compás"],
+"▶ Anhören":["▶ Listen", "▶ Escuchar"],
+"Fertig · Üben":["Done · Practise", "Listo · Practicar"],
+"‹ Note":["‹ Note", "‹ Nota"],
+"Note ›":["Note ›", "Nota ›"],
+"Ganze":["Whole", "Redonda"],
+"Halbe":["Half", "Blanca"],
+"Viertel":["Quarter", "Negra"],
+"Achtel":["Eighth", "Corchea"],
+"16tel":["16th", "Semicorchea"],
+"Halbe punktiert":["Dotted half", "Blanca con puntillo"],
+"Viertel punktiert":["Dotted quarter", "Negra con puntillo"],
+"Achtel punktiert":["Dotted eighth", "Corchea con puntillo"],
+"16tel punktiert":["Dotted 16th", "Semicorchea con puntillo"],
+"32tel":["32nd", "Fusa"],
+"{d} Schläge":["{d} beats", "{d} tiempos"],
+"Punkt":["Dot", "Puntillo"],
+"Hand: rechts":["Hand: right", "Mano: derecha"],
+"Hand: links":["Hand: left", "Mano: izquierda"],
+"+ Note":["+ Note", "+ Nota"],
+"↶ Rückgängig":["↶ Undo", "↶ Deshacer"],
+"Vorherige Seite":["Previous page", "Página anterior"],
+"Nächste Seite":["Next page", "Página siguiente"],
+"Verkleinern":["Zoom out", "Alejar"],
+"Vergrößern":["Zoom in", "Acercar"],
+"Vorherige Note":["Previous note", "Nota anterior"],
+"Nächste Note":["Next note", "Nota siguiente"],
+"Halbton tiefer":["Semitone down", "Semitono abajo"],
+"Halbton höher":["Semitone up", "Semitono arriba"],
+"Daten und Sicherung":["Data and backup", "Datos y copia de seguridad"],
+"Sicherung speichern":["Save backup", "Guardar copia"],
+"Sicherung teilen …":["Share backup …", "Compartir copia …"],
+"Sicherung laden":["Load backup", "Cargar copia"],
+"Lied teilen":["Share song", "Compartir canción"],
+"Für alle Profile auf diesem Gerät freigeben":["Share with all profiles on this device", "Compartir con todos los perfiles de este dispositivo"],
+"Als Datei teilen":["Share as file", "Compartir como archivo"],
+"Datei speichern":["Save file", "Guardar archivo"],
+"Link teilen":["Share link", "Compartir enlace"],
+"Geteiltes Lied":["Shared song", "Canción compartida"],
+"In meine Bibliothek übernehmen":["Add to my library", "Añadir a mi biblioteca"],
+"Noten werden erkannt … Seite {i} von {n}":["Recognising notes … page {i} of {n}", "Reconociendo notas … página {i} de {n}"],
+"Auf diesen Seiten wurden keine Noten erkannt. Tipp: Seite gerade und bildfüllend fotografieren, gutes Licht, keine Schatten. Handschrift wird nicht erkannt.":["No notes were recognised on these pages. Tip: photograph the page straight and filling the frame, in good light without shadows. Handwriting is not recognised.", "No se reconocieron notas en estas páginas. Consejo: fotografía la página recta y llenando el encuadre, con buena luz y sin sombras. La escritura a mano no se reconoce."],
+"keine Vorzeichen":["no sharps or flats", "sin alteraciones"],
+"automatisch":["automatic", "automático"],
+"Auf dieser Seite wurden keine Notenzeilen gefunden.":["No staves were found on this page.", "No se encontraron pentagramas en esta página."],
+"Tippe in den Noten auf die Stelle, an der eine Note fehlt.":["Tap the spot in the score where a note is missing.", "Toca el lugar de la partitura donde falta una nota."],
+"{n} Noten erkannt. Tippe eine Note an, um sie zu prüfen. Am Klavier gedrückte Tasten korrigieren die gewählte Note.":["{n} notes recognised. Tap a note to check it. Keys you press on the piano correct the selected note.", "{n} notas reconocidas. Toca una nota para revisarla. Las teclas que pulses en el piano corrigen la nota seleccionada."],
+"Keine Noten erkannt.":["No notes recognised.", "No se reconocieron notas."],
+"linke Hand":["left hand", "mano izquierda"],
+"rechte Hand":["right hand", "mano derecha"],
+"Hier ist keine Notenzeile. Tippe direkt in eine Notenzeile.":["There is no staff here. Tap directly into a staff.", "Aquí no hay pentagrama. Toca directamente en un pentagrama."],
+"Diese Zeile gehört nicht zur Klavierstimme.":["This staff is not part of the piano part.", "Este pentagrama no pertenece a la parte de piano."],
+"Modus „Warten“ ist eingestellt: Das Lied geht erst weiter, wenn du die richtigen Tasten drückst.":["“Wait” mode is on: the song only continues when you press the right keys.", "Modo «Esperar» activado: la canción solo avanza cuando pulsas las teclas correctas."],
+"belegt: {m} MB":["used: {m} MB", "ocupado: {m} MB"],
+"Achtung: Der Gerätespeicher ist nicht verfügbar. Neue Lieder gehen beim Neuladen verloren.":["Warning: device storage is not available. New songs will be lost when the page reloads.", "Atención: el almacenamiento del dispositivo no está disponible. Las canciones nuevas se perderán al recargar."],
+"Auf diesem Gerät · eigene Lieder: {s} · Profile: {u}":["On this device · own songs: {s} · profiles: {u}", "En este dispositivo · canciones propias: {s} · perfiles: {u}"],
+"Dauerhafter Speicher: {p}":["Persistent storage: {p}", "Almacenamiento persistente: {p}"],
+"aktiv":["active", "activo"],
+"vom Browser nicht bestätigt":["not confirmed by the browser", "no confirmado por el navegador"],
+"Letzte Sicherung: {d}":["Last backup: {d}", "Última copia: {d}"],
+"noch keine":["none yet", "ninguna todavía"],
+"Teilen wird von diesem Browser nicht unterstützt. Nutze „Sicherung speichern“.":["This browser does not support sharing. Use “Save backup”.", "Este navegador no permite compartir. Usa «Guardar copia»."],
+"Das ist keine Piano-Hero-Sicherung.":["This is not a Piano Hero backup.", "Esto no es una copia de seguridad de Piano Hero."],
+"Sicherung geladen. Übernommen: Lieder {s}, Profile {u}.":["Backup loaded. Restored: songs {s}, profiles {u}.", "Copia cargada. Restaurado: canciones {s}, perfiles {u}."],
+"Die Datei konnte nicht gelesen werden.":["The file could not be read.", "No se pudo leer el archivo."],
+"Die Datei enthält kein Lied.":["The file does not contain a song.", "El archivo no contiene ninguna canción."],
+"„{t}“ wurde in deine Bibliothek übernommen.":["“{t}” was added to your library.", "«{t}» se añadió a tu biblioteca."],
+"Alle Profile auf diesem Gerät sehen das Lied jetzt.":["All profiles on this device can now see the song.", "Todos los perfiles de este dispositivo ven ahora la canción."],
+"Nur du siehst das Lied.":["Only you can see the song.", "Solo tú ves la canción."],
+"Datei gespeichert. Schicke sie z. B. per E-Mail oder Google Drive weiter.":["File saved. Send it on by e-mail or Google Drive, for example.", "Archivo guardado. Envíalo, por ejemplo, por correo o Google Drive."],
+"Dieser Browser ist zu alt für Links. Teile das Lied als Datei.":["This browser is too old for links. Share the song as a file.", "Este navegador es demasiado antiguo para enlaces. Comparte la canción como archivo."],
+"Das Lied ist zu groß für einen Link. Teile es als Datei.":["The song is too large for a link. Share it as a file.", "La canción es demasiado grande para un enlace. Compártela como archivo."],
+"Lied „{t}“ für Piano Hero":["Song “{t}” for Piano Hero", "Canción «{t}» para Piano Hero"],
+"Link kopiert. Füge ihn in eine Nachricht ein.":["Link copied. Paste it into a message.", "Enlace copiado. Pégalo en un mensaje."],
+"geteilt von {n}":["shared by {n}", "compartida por {n}"],
+"Geteilt von {n}":["Shared by {n}", "Compartida por {n}"],
+"Der Link ist unvollständig oder beschädigt.":["The link is incomplete or damaged.", "El enlace está incompleto o dañado."],
+"Aus deinem Scan erkannt, auf diesem Gerät gespeichert":["Recognised from your scan, stored on this device", "Reconocida de tu escaneo, guardada en este dispositivo"],
+"Noten erkennen":["Recognise notes", "Reconocer notas"],
+"Erkennung bearbeiten":["Edit recognition", "Editar reconocimiento"],
+"Teilen":["Share", "Compartir"],
+"Dieses Dateiformat kenne ich nicht. Erlaubt sind .musicxml, .mxl, .xml, .mid und geteilte Piano-Hero-Dateien.":["I don’t know this file format. Allowed are .musicxml, .mxl, .xml, .mid and shared Piano Hero files.", "No conozco este formato. Se permiten .musicxml, .mxl, .xml, .mid y archivos compartidos de Piano Hero."],
 'Bibliothek öffnen':['Open library','Abrir biblioteca'],
+'Noten scannen':['Scan sheet music','Escanear partitura'], 'PDF oder Bilder wählen':['Choose PDF or images','Elegir PDF o imágenes'], 'Foto aufnehmen':['Take photo','Hacer foto'],
+'offen':['open','sin definir'], 'Kontrast verbessern (für Fotos)':['Improve contrast (for photos)','Mejorar contraste (para fotos)'], 'In Bibliothek speichern':['Save to library','Guardar en la biblioteca'],
+'Ganze Seite':['Whole page','Página completa'], 'Seitenbreite':['Page width','Ancho de página'], 'Metronom':['Metronome','Metrónomo'],
+'Seite {i} von {n}':['Page {i} of {n}','Página {i} de {n}'], 'Eingescannte Noten':['Scanned sheet music','Partituras escaneadas'], 'Eingescannt':['Scanned','Escaneada'],
+'Noten ansehen':['View sheet music','Ver partitura'], 'MusicXML zuordnen':['Attach MusicXML','Asignar MusicXML'], 'Noten zugeordnet. Der Song ist jetzt spielbar.':['Score attached. The song is now playable.','Partitura asignada. La canción ya se puede tocar.'],
+'PDF-Dateien brauchen eine Internetverbindung.':['PDF files need an internet connection.','Los archivos PDF necesitan conexión a internet.'], 'PDF wird gelesen …':['Reading PDF …','Leyendo PDF …'],
+'Seite {i} von {n} …':['Page {i} of {n} …','Página {i} de {n} …'], 'Dieses Bild kann der Browser nicht öffnen.':['The browser cannot open this image.','El navegador no puede abrir esta imagen.'],
+'Nur PDF- oder Bilddateien.':['Only PDF or image files.','Solo archivos PDF o de imagen.'], 'Nach vorn':['Move forward','Adelante'], 'Nach hinten':['Move back','Atrás'], 'Entfernen':['Remove','Quitar'],
 '▶ Vorhören':['▶ Preview','▶ Escuchar'], '■ Stopp':['■ Stop','■ Parar'], 'Schwierigkeit':['Difficulty','Dificultad'], 'Leicht':['Easy','Fácil'],
 'Originalfassung':['Original version','Versión original'], 'Vereinfachte Bearbeitung aus der Notensammlung':['Simplified arrangement from the score collection','Arreglo simplificado de la colección de partituras'],
 'Leicht und Original':['Easy and original','Fácil y original'],
@@ -503,6 +735,12 @@ const I18N = {
 'In der .mxl-Datei ist keine MusicXML-Datei.':['The .mxl file contains no MusicXML file.','El archivo .mxl no contiene ningún MusicXML.']
 };
 const HTML_I18N = {
+sharehint: {
+en: "For other devices: send the song as a file, for example via WhatsApp, e-mail or Google Drive. The recipient opens Piano Hero and taps “Import file” in the library. A link contains only the notes, no scan images.",
+es: "Para otros dispositivos: envía la canción como archivo, por ejemplo por WhatsApp, correo o Google Drive. Quien la recibe abre Piano Hero y toca «Importar archivo» en la biblioteca. Un enlace solo contiene las notas, no las imágenes escaneadas."},
+datahint: {
+en: "Your songs, profiles and progress are stored in the browser on this device. An app update (new index.html on GitHub) does not delete them. They are only lost if you clear the site data in Chrome, open the app at a different address or switch devices. So save a backup now and then, for example to Google Drive. “Load backup” brings everything back, also on another device. Tip: add the app to your home screen from the Chrome menu; Chrome is then more likely to keep the storage permanently.",
+es: "Tus canciones, perfiles y progreso se guardan en el navegador de este dispositivo. Una actualización de la app (nuevo index.html en GitHub) no los borra. Solo se pierden si borras los datos del sitio en Chrome, abres la app en otra dirección o cambias de dispositivo. Por eso, guarda de vez en cuando una copia de seguridad, por ejemplo en Google Drive. Con «Cargar copia» lo recuperas todo, también en otro dispositivo. Consejo: añade la app a la pantalla de inicio desde el menú de Chrome; así Chrome conserva el almacenamiento de forma más fiable."},
 help: {
 en: `<ol><li>Connect the <strong>USB to Host</strong> port of the piano to the tablet with an OTG cable.</li><li>Switch the piano on, tap <strong>Connect piano</strong> at the top and allow MIDI access.</li><li>Press a key. The key name appears at the top, for example “C4”.</li></ol>
 <h3>Views</h3><ul><li><strong>Sheet</strong>: the score with a cursor that follows along. Tap a spot in the score to jump there.</li><li><strong>Falling</strong>: notes fall towards the keys as bars.</li></ul>
@@ -513,11 +751,14 @@ es: `<ol><li>Conecta el puerto <strong>USB to Host</strong> del piano a la table
 <h3>Modos</h3><ul><li><strong>Esperar</strong>: la canción solo avanza cuando pulsas las teclas correctas.</li><li><strong>Tocar</strong>: la canción sigue y se cuentan aciertos y notas perdidas.</li><li><strong>Escuchar</strong>: la canción suena para ti.</li><li><strong>A</strong> y <strong>B</strong> marcan el inicio y el final de una sección; <strong>Bucle</strong> la repite.</li></ul>
 <h3>Probar sin piano</h3><p>Toca las teclas en pantalla o usa el teclado del ordenador: de <kbd>A</kbd> a <kbd>L</kbd> son las teclas blancas desde C4; <kbd>W</kbd> <kbd>E</kbd> <kbd>T</kbd> <kbd>Z</kbd> <kbd>U</kbd>, las negras. La <kbd>barra espaciadora</kbd> inicia y pausa.</p>`},
 credit: {
-en: 'Pictures: Wikipedia / Wikimedia Commons (loaded when online). Classical pieces: scores from the <a href="https://github.com/musetrainer/library" target="_blank" rel="noopener">MuseTrainer Library</a> (public domain). The app creates the “Easy” and “Medium” versions automatically from the original. Difficulty is an estimate based on note density and the share of black keys.',
-es: 'Imágenes: Wikipedia / Wikimedia Commons (se cargan con conexión). Piezas clásicas: partituras de la <a href="https://github.com/musetrainer/library" target="_blank" rel="noopener">MuseTrainer Library</a> (dominio público). La app crea automáticamente las versiones «Fácil» y «Media» a partir del original. La dificultad es una estimación basada en la densidad de notas y la proporción de teclas negras.'},
+en: 'Pictures: Wikipedia / Wikimedia Commons (loaded when online). Classical pieces: scores from the <a href="https://github.com/musetrainer/library" target="_blank" rel="noopener">MuseTrainer Library</a> (public domain). An “Easy” version is only offered when the collection contains a real simplified arrangement. Difficulty is an estimate based on note density and the share of black keys.',
+es: 'Imágenes: Wikipedia / Wikimedia Commons (se cargan con conexión). Piezas clásicas: partituras de la <a href="https://github.com/musetrainer/library" target="_blank" rel="noopener">MuseTrainer Library</a> (dominio público). Solo hay versión «Fácil» cuando la colección contiene un arreglo simplificado real. La dificultad es una estimación basada en la densidad de notas y la proporción de teclas negras.'},
 loginhint: {
 en: 'Profiles, favourites and progress are stored only on this device. The PIN keeps others from practising in your profile by accident. It does not protect the device against access by others.',
 es: 'Los perfiles, favoritos y el progreso se guardan solo en este dispositivo. El PIN evita que otra persona practique por error en tu perfil. No protege el dispositivo frente a accesos ajenos.'},
+scanhint: {
+en: "Add scanned sheet music as PDF or images, or photograph it with the camera. The app recognises printed piano music and turns it into a playable song, also for “Wait” mode. Recognition is not perfect: check the result in the correction editor. It works best with clean PDFs or straight, bright photos without shadows. Handwriting is not recognised.",
+es: "Añade partituras escaneadas en PDF o imágenes, o fotografíalas con la cámara. La app reconoce partituras de piano impresas y las convierte en una canción que se puede tocar, también en el modo «Esperar». El reconocimiento no es perfecto: revisa el resultado en el editor de corrección. Funciona mejor con PDF limpios o fotos rectas y luminosas, sin sombras. La escritura a mano no se reconoce."},
 videohint: {
 en: 'This works with piano tutorials in which the played keys light up in colour, for example on an overlaid keyboard. Select several parts of a song together; they are joined in the order of their file names. The result is a rough draft: rhythm and bars are estimated, and repetitions from the video remain.',
 es: 'Funciona con tutoriales de piano en los que las teclas tocadas se iluminan en color, por ejemplo en un teclado superpuesto. Selecciona juntas varias partes de una canción; se unen en el orden de sus nombres de archivo. El resultado es un borrador: el ritmo y los compases son estimados y las repeticiones del vídeo se mantienen.'}
@@ -1034,7 +1275,7 @@ async function loadLibrary(){
   const recs = await DB.all();
   library = DEMOS.map(s => ({id:s.id, title:s.title, composer:s.composer, tags:s.tags, src:'demo', dur:s.dur, diff: songDiff(s)}))
     .concat(PD_SONGS.map(p => ({id:p.id, title:p.title, composer:p.composer, tags:p.tags, src:'pd', dur:p.dur, diff: p.diff || diffOf(p.nps, p.black), versionOf: p.versionOf || null})))
-    .concat(recs.filter(r => !r.owner || (USER && r.owner === USER.id)).sort((a,b) => (b.added||0) - (a.added||0)).map(r => ({id:r.id, title:r.title, composer:r.composer || '', tags:[], cat: r.cat || 'Importiert', src:'user', format:r.format, dur:r.dur, diff:r.diff || 2, img: r.img || '', artist: r.composer || '', genre: r.genre || ''})));
+    .concat(recs.filter(r => !r.owner || (USER && (r.owner === USER.id || r.shared))).sort((a,b) => (b.added||0) - (a.added||0)).map(r => ({id:r.id, title:r.title, composer:r.composer || '', tags:[], cat: r.cat || 'Importiert', src:'user', format:r.format, dur:r.dur, diff: r.format === 'scan' ? (r.diff || 0) : (r.diff || 2), img: r.img || (r.pages && r.pages[0]) || '', artist: r.composer || '', genre: r.genre || '', scan: !!(r.pages && r.pages.length), omr: !!r.omr, mine: !r.owner || !!(USER && r.owner === USER.id), owner: r.owner || '', from: r.from || ''})));
   groupVersions();
 }
 function groupVersions(){
@@ -1216,6 +1457,7 @@ function finishSong(){
 }
 
 function noteOn(p, src){
+  if (!$('#omred').hidden) { held.set(p, {verdict: 'neutral'}); if (src !== 'midi') synth(p, 0.8, 0.6); omrKey(p); return; }
   presses.set(p, performance.now());
   let verdict = 'neutral';
   if (S.song && S.playing && S.mode !== 'listen') {
@@ -1243,7 +1485,7 @@ function noteOff(p){ held.delete(p); }
 
 /* ---------- MIDI-Eingang ---------- */
 let devName = '';
-function chip(state, text){ $('#midiBtn').dataset.state = state; $('#midiText').textContent = text; }
+function chip(state, text){ $('#midiBtn').dataset.state = state; $('#midiText').textContent = text; ['svMidi', 'oeMidi'].forEach(id => { const b = document.getElementById(id); if (b) b.textContent = text; }); }
 function lastKey(p){ chip('ok', (devName || 'Klavier') + ' · ' + nm(p)); }
 function onMidi(e){
   const [st, a, b] = e.data; const ty = st & 0xF0;
@@ -1467,7 +1709,13 @@ const typing = el => el && (el.tagName === 'INPUT' && el.type !== 'range' || el.
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey || typing(e.target)) return;
   if (!$('#login').hidden) return;
-  if (!$('#help').hidden || !$('#video').hidden) { if (e.key === 'Escape') closeSheets(); return; }
+  if (document.querySelector('.sheet:not(.libpage):not([hidden])')) { if (e.key === 'Escape') closeSheets(); return; }
+  if (!$('#omred').hidden) {
+    const k = {ArrowRight: () => oeStep(1), ArrowLeft: () => oeStep(-1), ArrowUp: () => $('#oeUp').click(), ArrowDown: () => $('#oeDown').click(), Delete: () => $('#oeDel').click(), Backspace: () => $('#oeDel').click()}[e.key];
+    if (k) { e.preventDefault(); k(); return; }
+    if (e.code === 'Space') return;
+  }
+  if (!$('#scanview').hidden) { if (e.key === 'ArrowRight' || e.key === 'PageDown') { SV.i++; showScanPage(); return; } if (e.key === 'ArrowLeft' || e.key === 'PageUp') { SV.i--; showScanPage(); return; } }
   if (!$('#lib').hidden) return;
   if (e.code === 'Space' && e.target.tagName !== 'BUTTON') { e.preventDefault(); togglePlay(); return; }
   const p = KB[e.key.toLowerCase()]; if (p === undefined || e.repeat) return;
@@ -1483,7 +1731,7 @@ function updStats(){
 }
 function updPlay(){ $('#playBtn').textContent = S.playing ? t('❚❚ Pause') : t('▶ Start'); }
 let bannerTimer = 0;
-function showBanner(html, ms){ const b = $('#banner'); b.innerHTML = html; b.dataset.w = ''; b.hidden = false; clearTimeout(bannerTimer); if (ms) bannerTimer = setTimeout(() => { b.hidden = true; }, ms); }
+function showBanner(html, ms){ const b = $('#banner'); b.classList.toggle('top', !$('#lib').hidden || !$('#omred').hidden || !$('#scanview').hidden); b.innerHTML = html; b.dataset.w = ''; b.hidden = false; clearTimeout(bannerTimer); if (ms) bannerTimer = setTimeout(() => { b.hidden = true; }, ms); }
 function hideBanner(){ $('#banner').hidden = true; }
 
 let wl = null;
@@ -1580,10 +1828,10 @@ function openSheet(id){
 let chosenSong = false;
 function showCatalog(fromPop){
   if (S.playing) togglePlay(); else commitRun();
-  closeSheets(); $('#detail').hidden = true; $('#lib').hidden = false; renderLib();
+  closeSheets(); if (!$('#scanview').hidden) closeScanView(); closeOmrEditor(); $('#detail').hidden = true; $('#lib').hidden = false; renderLib();
   $('#toPiano').hidden = !chosenSong;
   if (chosenSong) $('#toPianoTitle').textContent = $('#songTitle').textContent;
-  if (!fromPop && history.state && history.state.v === 'player') history.back();
+  if (!fromPop && history.state && (history.state.v === 'player' || history.state.v === 'scan' || history.state.v === 'omr')) history.back();
 }
 function showPlayer(){
   stopPreview();
@@ -1591,7 +1839,7 @@ function showPlayer(){
   if (!history.state || history.state.v !== 'player') { try { history.pushState({v:'player'}, ''); } catch(e){} }
   resize(); if (S.view === 'sheet') setTimeout(() => updCursor(true), 50);
 }
-window.addEventListener('popstate', () => { if (USER && $('#lib').hidden) showCatalog(true); });
+window.addEventListener('popstate', () => { if (USER && $('#lib').hidden) { closeScanView(); closeOmrEditor(); showCatalog(true); } });
 try { history.replaceState({v:'catalog'}, ''); } catch(e){}
 function closeSheets(){ document.querySelectorAll('.sheet:not(.libpage)').forEach(s => { s.hidden = true; }); }
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
@@ -1685,7 +1933,7 @@ function cardEl(e){
   const ct = document.createElement('span'); ct.className = 'ct';
   const {v, st} = statFor(e), vn = versionName(v, e);
   ct.innerHTML = '<strong>' + esc(tTitle(e)) + '</strong><span>' + esc(t(e.composer || e.artist || (e.src === 'user' ? e.cat : ''))) + '</span>' +
-    '<em>' + t(DIFF[e.diff]) + (e.dur ? ' · ' + fmt(e.dur) : '') + '</em>' +
+    '<em>' + (e.diff ? t(DIFF[e.diff]) : t('Eingescannt')) + (e.dur ? ' · ' + fmt(e.dur) : '') + '</em>' +
     '<em class="st">' + statLine(st) + (st && vn && vn !== 'Original' ? ' · ' + t(vn) : '') + '</em>' + (versionsOf(e).length > 1 ? '<em class="vers">' + t('Leicht und Original') + '</em>' : '');
   b.append(ct);
   b.addEventListener('click', () => openDetail(e));
@@ -1696,8 +1944,9 @@ const ROWS = [
   {t:'Favoriten', f: () => library.filter(e => meta.fav[e.id])},
   {t:'Rock & Pop', f: () => library.filter(e => e.genre === 'Rock' || e.genre === 'Pop'), empty:'Hier erscheinen deine Rock- und Pop-Songs. Importiere Noten als MusicXML oder MIDI oder erzeuge sie aus einem Tutorial-Video und wähle dann auf der Detailseite das Genre.'},
   {t:'Filmmusik', f: () => library.filter(e => e.genre === 'Filmmusik')},
-  {t:'Meine Songs', f: () => library.filter(e => e.src === 'user' && e.cat !== 'Aus Videos' && !['Rock','Pop','Filmmusik'].includes(e.genre))},
+  {t:'Meine Songs', f: () => library.filter(e => e.src === 'user' && e.cat !== 'Aus Videos' && !e.scan && !['Rock','Pop','Filmmusik'].includes(e.genre))},
   {t:'Aus Videos', f: () => library.filter(e => e.cat === 'Aus Videos')},
+  {t:'Eingescannte Noten', f: () => library.filter(e => e.scan)},
   {t:'Für Einsteiger', tag:'Einsteiger'}, {t:'Klassik-Highlights', tag:'Highlights'},
   {t:'Kinderlieder', tag:'Kinderlieder'}, {t:'Weihnachten', tag:'Weihnachten'},
   {t:'Beethoven', tag:'Beethoven'}, {t:'Chopin', tag:'Chopin'}, {t:'Barock', tag:'Barock'},
@@ -1745,13 +1994,15 @@ function stopPreview(){
   PV.on = false; clearInterval(PV.timer);
   if (ac) { const now = ac.currentTime; for (const vo of voices.slice()) { try { vo.g.gain.cancelScheduledValues(now); vo.g.gain.setTargetAtTime(0, now, 0.03); vo.osc.stop(now + 0.15); } catch(e){} } }
   const b = $('#dPrev'); if (b) b.textContent = t('▶ Vorhören');
+  const b2 = $('#oeListen'); if (b2) b2.textContent = t('▶ Anhören');
   const pt = $('#dPrevT'); if (pt) pt.textContent = '';
 }
 function startPreview(song){
   stopPreview();
   const a = audio(); if (!a) return;
   PV.song = song; PV.idx = 0; PV.on = true; PV.t0 = a.currentTime + 0.15;
-  $('#dPrev').textContent = t('■ Stopp');
+  const pb = $('#dPrev'); if (pb && !$('#detail').hidden) pb.textContent = t('■ Stopp');
+  const ob = $('#oeListen'); if (ob && !$('#omred').hidden) ob.textContent = t('■ Stopp');
   const tick = () => {
     if (!PV.on) return;
     const now = ac.currentTime - PV.t0, ns = PV.song.notes;
@@ -1770,20 +2021,21 @@ async function openDetail(e){
   const vers = versionsOf(e);
   detailLvl = vers.some(v => v.id === (meta.lastLevel && meta.lastLevel[e.id])) ? meta.lastLevel[e.id] : e.id;
   const src = e.src === 'pd' ? t('Notenvorlage: {a}, gemeinfrei', {a: '<a href="https://github.com/musetrainer/library" target="_blank" rel="noopener">MuseTrainer Library</a>'})
-            : e.src === 'demo' ? t('Mitgeliefert, gemeinfrei') : e.cat === 'Aus Videos' ? t('Aus deinem Video erkannt, auf diesem Gerät gespeichert') : t('Von dir importiert, auf diesem Gerät gespeichert');
+            : e.src === 'demo' ? t('Mitgeliefert, gemeinfrei') : e.src === 'user' && !e.mine ? t('Geteilt von {n}', {n: esc((getUsers().find(u => u.id === e.owner) || {}).name || '?')})
+            : e.from ? t('Geteilt von {n}', {n: esc(e.from)}) : e.omr ? t('Aus deinem Scan erkannt, auf diesem Gerät gespeichert') : e.cat === 'Aus Videos' ? t('Aus deinem Video erkannt, auf diesem Gerät gespeichert') : t('Von dir importiert, auf diesem Gerät gespeichert');
   d.innerHTML = '<div class="dwrap"><button class="back" id="dBack">‹ ' + t('Bibliothek') + '</button><div class="dtop"><div class="dcov"></div><div class="dinfo">' +
     '<h2>' + esc(tTitle(e)) + '</h2><p class="dcomp">' + esc(t(e.composer || e.artist || '')) + '</p>' +
-    '<p class="dmeta">' + t('Schwierigkeit') + ': ' + t(DIFF[e.diff]) + (e.dur ? ' · ' + fmt(e.dur) + ' ' + t('Min.') : '') + '</p><p class="dsrc">' + src + '</p>' +
-    '<div class="prev"><button class="btn" id="dPrev">' + t('▶ Vorhören') + '</button><span id="dPrevT"></span></div></div></div>' +
-    (e.src === 'user' ? '<div class="edit"><label>' + t('Titel') + ' <input id="eTitle" maxlength="80"></label><label>' + t('Interpret / Komponist') + ' <input id="eArtist" maxlength="80" placeholder="' + t('z. B. Queen') + '"></label><label>' + t('Genre') + ' <select id="eGenre">' + ['', 'Rock', 'Pop', 'Filmmusik', 'Klassik', 'Sonstiges'].map(g => '<option value="' + g + '">' + t(g || 'kein Genre') + '</option>').join('') + '</select></label><label class="btn" for="eImg">' + t('Eigenes Bild') + '</label><input type="file" id="eImg" accept="image/*"><button class="btn" id="eSave">' + t('Speichern') + '</button></div>' : '') +
+    '<p class="dmeta">' + t('Schwierigkeit') + ': ' + (e.diff ? t(DIFF[e.diff]) : t('offen')) + (e.dur ? ' · ' + fmt(e.dur) + ' ' + t('Min.') : '') + '</p><p class="dsrc">' + src + '</p>' +
+    (e.format === 'scan' ? '' : '<div class="prev"><button class="btn" id="dPrev">' + t('▶ Vorhören') + '</button><span id="dPrevT"></span></div>') + '</div></div>' +
+    (e.src === 'user' && e.mine ? '<div class="edit"><label>' + t('Titel') + ' <input id="eTitle" maxlength="80"></label><label>' + t('Interpret / Komponist') + ' <input id="eArtist" maxlength="80" placeholder="' + t('z. B. Queen') + '"></label><label>' + t('Genre') + ' <select id="eGenre">' + ['', 'Rock', 'Pop', 'Filmmusik', 'Klassik', 'Sonstiges'].map(g => '<option value="' + g + '">' + t(g || 'kein Genre') + '</option>').join('') + '</select></label>' + (e.format === 'scan' ? '<label>' + t('Schwierigkeit') + ' <select id="eDiff">' + [0,1,2,3,4,5].map(i => '<option value="' + i + '">' + (i ? t(DIFF[i]) : t('offen')) + '</option>').join('') + '</select></label>' : '') + '<label class="btn" for="eImg">' + t('Eigenes Bild') + '</label><input type="file" id="eImg" accept="image/*"><button class="btn" id="eSave">' + t('Speichern') + '</button></div>' : '') +
     (vers.length > 1 ? '<h3 class="rowh">' + t('Fassung wählen') + '</h3><div class="lvls" id="lvls"></div>' : '<div class="lvls single" id="lvls"></div>') +
-    '<div class="dact"><button class="primary big" id="dPlay">' + t('Üben') + '</button><button id="dFav"></button><button id="dExp">' + t('Als MusicXML speichern') + '</button>' + (e.src === 'user' ? '<button id="dDel" class="danger">' + t('Löschen') + '</button>' : '') + '</div></div>';
+    '<div class="dact">' + (e.format !== 'scan' ? '<button class="primary big" id="dPlay">' + t('Üben') + '</button>' : '') + (e.format === 'scan' && e.mine ? '<button class="primary big" id="dOmr">' + t('Noten erkennen') + '</button>' : '') + (e.scan ? '<button id="dScan">' + t('Noten ansehen') + '</button>' : '') + (e.omr && e.mine ? '<button id="dOmrEd">' + t('Erkennung bearbeiten') + '</button>' : '') + '<button id="dFav"></button>' + (e.format !== 'scan' ? '<button id="dExp">' + t('Als MusicXML speichern') + '</button>' : '') + (e.scan && e.mine ? '<label class="btn" for="dAttach">' + t('MusicXML zuordnen') + '</label><input type="file" id="dAttach" accept=".musicxml,.xml,.mxl,.mid,.midi">' : '') + (e.src === 'user' ? '<button id="dShare">' + t('Teilen') + '</button>' : '') + (e.src === 'user' && e.mine ? '<button id="dDel" class="danger">' + t('Löschen') + '</button>' : '') + '</div></div>';
   d.querySelector('.dcov').append(coverEl(e, true));
   $('#dBack').addEventListener('click', () => { stopPreview(); d.hidden = true; renderLib(); });
-  if (e.src === 'user') {
-    $('#eTitle').value = e.title; $('#eArtist').value = e.artist || ''; $('#eGenre').value = e.genre || '';
-    const saveRec = async patch => { const rec = await DB.get(e.id); if (!rec) return; Object.assign(rec, patch); await DB.put(rec); baseCache.delete(e.id); await loadLibrary(); const ne = library.find(x => x.id === e.id); if (ne) openDetail(ne); };
-    $('#eSave').addEventListener('click', () => saveRec({title: $('#eTitle').value.trim() || e.title, composer: $('#eArtist').value.trim(), genre: $('#eGenre').value}));
+  if (e.src === 'user' && e.mine) {
+    $('#eTitle').value = e.title; $('#eArtist').value = e.artist || ''; $('#eGenre').value = e.genre || ''; if ($('#eDiff')) $('#eDiff').value = e.diff || 0;
+    const saveRec = async patch => { const rec = await DB.get(e.id); if (!rec) return; Object.assign(rec, patch, {mod: Date.now()}); await DB.put(rec); baseCache.delete(e.id); await loadLibrary(); const ne = library.find(x => x.id === e.id); if (ne) openDetail(ne); };
+    $('#eSave').addEventListener('click', () => saveRec(Object.assign({title: $('#eTitle').value.trim() || e.title, composer: $('#eArtist').value.trim(), genre: $('#eGenre').value}, $('#eDiff') ? {diff: +$('#eDiff').value} : {})));
     $('#eImg').addEventListener('change', ev => {
       const f = ev.target.files[0]; if (!f) return;
       const im = new Image(); im.onload = () => {
@@ -1809,12 +2061,17 @@ async function openDetail(e){
   };
   drawLv();
   const curVersion = () => vers.find(v => v.id === detailLvl) || e;
-  $('#dPrev').addEventListener('click', async () => {
+  if ($('#dScan')) $('#dScan').addEventListener('click', () => openScanView(e));
+  if ($('#dOmr')) $('#dOmr').addEventListener('click', () => startRecognition(e.id));
+  if ($('#dOmrEd')) $('#dOmrEd').addEventListener('click', async () => { const rec = await DB.get(e.id); if (rec && rec.omr) openOmrEditor(rec); });
+  if ($('#dShare')) $('#dShare').addEventListener('click', () => openShare(e));
+  if ($('#dAttach')) $('#dAttach').addEventListener('change', async ev => { const f = ev.target.files[0]; ev.target.value = ''; if (!f) return; try { await attachScore(e, f); showBanner(t('Noten zugeordnet. Der Song ist jetzt spielbar.'), 5000); } catch (err) { showBanner(esc(err.message), 6000); } });
+  if ($('#dPrev')) $('#dPrev').addEventListener('click', async () => {
     if (PV.on) { stopPreview(); return; }
     try { const base = await loadBase(curVersion()); startPreview(base); } catch (err) { showBanner(esc(err.message), 4000); }
   });
-  $('#dPlay').addEventListener('click', async () => { stopPreview(); if (await selectEntry(e, detailLvl)) showPlayer(); });
-  $('#dExp').addEventListener('click', async () => {
+  if ($('#dPlay')) $('#dPlay').addEventListener('click', async () => { stopPreview(); if (await selectEntry(e, detailLvl)) showPlayer(); });
+  if ($('#dExp')) $('#dExp').addEventListener('click', async () => {
     try { const v = curVersion(), base = await loadBase(v); download(tTitle(v).replace(/[\\/:*?"<>|]+/g, '') + '.musicxml', base.xml); }
     catch (err) { showBanner(esc(err.message), 4000); }
   });
@@ -1836,10 +2093,16 @@ $('#fileIn').addEventListener('change', async ev => {
       const ext = (f.name.split('.').pop() || '').toLowerCase();
       const id = 'imp-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       let rec;
+      if (ext === 'json' || ext === 'txt' || ext === 'pianohero') {
+        let o; try { o = JSON.parse(await f.text()); } catch (err) { throw new Error(t('Die Datei konnte nicht gelesen werden.')); }
+        if (o && o.pianohero === 'song') { const r = await importPackage(o); lastId = r.id; continue; }
+        if (o && o.pianohero === 'backup') { const r = await restoreBackup(o); showBanner(t('Sicherung geladen. Übernommen: Lieder {s}, Profile {u}.', {s: r.ns, u: r.nu}), 6000); continue; }
+        throw new Error(t('Die Datei enthält kein Lied.'));
+      }
       if (ext === 'mid' || ext === 'midi') rec = {format:'mid', data: await f.arrayBuffer()};
       else if (ext === 'mxl') rec = {format:'xml', data: await unzipMxl(await f.arrayBuffer())};
       else if (ext === 'xml' || ext === 'musicxml') rec = {format:'xml', data: await f.text()};
-      else throw new Error(t('Dieses Dateiformat kenne ich nicht. Erlaubt sind .musicxml, .mxl, .xml und .mid.'));
+      else throw new Error(t('Dieses Dateiformat kenne ich nicht. Erlaubt sind .musicxml, .mxl, .xml, .mid und geteilte Piano-Hero-Dateien.'));
       let title = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim(), composer = '';
       if (rec.format === 'xml') { const r = parseMusicXML(rec.data); if (r.title) title = r.title; composer = r.composer || ''; }
       Object.assign(rec, {id, title, composer, cat:'Importiert', added: Date.now(), owner: USER && USER.id});
@@ -2178,7 +2441,7 @@ function renderProfiles(){
   $('#loginSub').textContent = users.length ? t('Wer spielt heute?') : t('Lege dein Profil an, um loszulegen.');
 }
 function showLoginPart(id){ ['profiles', 'pinForm', 'newForm'].forEach(x => { $('#' + x).hidden = x !== id; }); }
-function showLogin(){ closeSheets(); $('#lib').hidden = true; renderProfiles(); showLoginPart(getUsers().length ? 'profiles' : 'newForm'); $('#login').hidden = false; }
+function showLogin(){ closeSheets(); $('#lib').hidden = true; $('#scanview').hidden = true; $('#omred').hidden = true; renderProfiles(); showLoginPart(getUsers().length ? 'profiles' : 'newForm'); $('#login').hidden = false; }
 $('#pinBack').addEventListener('click', () => showLoginPart('profiles'));
 $('#newBack').addEventListener('click', () => showLoginPart('profiles'));
 $('#pinForm').addEventListener('submit', async ev => {
@@ -2208,6 +2471,7 @@ async function login(u){
   await loadLibrary();
   $('#libUserName').textContent = u.name; $('#libUserAv').textContent = u.name.slice(0, 1).toUpperCase();
   chosenSong = false; showCatalog(true);
+  persistStorage(); checkIncoming();
 }
 function logout(){
   stopPreview();
@@ -2225,6 +2489,1250 @@ document.querySelectorAll('.langSel').forEach(sel => sel.addEventListener('chang
   if (!$('#login').hidden) { renderProfiles(); }
   if (!$('#lib').hidden) { renderLib(); if (!$('#detail').hidden && openEntry) openDetail(openEntry); }
 }));
+/* ---------- Eingescannte Noten ---------- */
+const SC = {pages: []};
+let pdfLoading = null;
+function loadPdfJs(){
+  if (window.pdfjsLib) return Promise.resolve();
+  if (pdfLoading) return pdfLoading;
+  pdfLoading = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = () => { try { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } catch(e){} res(); };
+    s.onerror = () => { pdfLoading = null; rej(new Error(t('PDF-Dateien brauchen eine Internetverbindung.'))); };
+    document.head.append(s);
+  });
+  return pdfLoading;
+}
+function enhance(canvas){
+  // Graustufen und Kontrast strecken, damit Fotos von Noten gut lesbar werden
+  const c = canvas.getContext('2d'), im = c.getImageData(0, 0, canvas.width, canvas.height), d = im.data, hist = new Uint32Array(256);
+  for (let i = 0; i < d.length; i += 4) { const v = (d[i] * 0.3 + d[i+1] * 0.59 + d[i+2] * 0.11) | 0; d[i] = v; hist[v]++; }
+  const n = d.length / 4; let acc = 0, lo = 0, hi = 255;
+  for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc > n * 0.02) { lo = v; break; } }
+  acc = 0; for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc > n * 0.35) { hi = v; break; } }
+  const k = 255 / Math.max(20, hi - lo);
+  for (let i = 0; i < d.length; i += 4) { let v = (d[i] - lo) * k; v = v < 0 ? 0 : v > 255 ? 255 : v; d[i] = d[i+1] = d[i+2] = v; }
+  c.putImageData(im, 0, 0);
+}
+function canvasFrom(src, maxW){
+  const k = Math.min(1, maxW / src.width), c = document.createElement('canvas');
+  c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(src, 0, 0, c.width, c.height);
+  return c;
+}
+async function addScanFiles(files){
+  const st = $('#scStat');
+  for (const f of files) {
+    try {
+      if (/pdf$/i.test(f.type) || /\.pdf$/i.test(f.name)) {
+        st.textContent = t('PDF wird gelesen …'); await loadPdfJs();
+        const pdf = await pdfjsLib.getDocument({data: new Uint8Array(await f.arrayBuffer())}).promise;
+        for (let i = 1; i <= pdf.numPages; i++) {
+          st.textContent = t('Seite {i} von {n} …', {i, n: pdf.numPages});
+          const pg = await pdf.getPage(i), vp0 = pg.getViewport({scale: 1}), scale = Math.min(3.5, 2000 / vp0.width), vp = pg.getViewport({scale});
+          const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+          const cx2 = c.getContext('2d'); cx2.fillStyle = '#fff'; cx2.fillRect(0, 0, c.width, c.height);
+          await pg.render({canvasContext: cx2, viewport: vp}).promise;
+          SC.pages.push({c, name: f.name + ' · ' + i});
+        }
+      } else if (/^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|gif)$/i.test(f.name)) {
+        const url = URL.createObjectURL(f);
+        const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(t('Dieses Bild kann der Browser nicht öffnen.'))); im.src = url; });
+        SC.pages.push({c: canvasFrom(img, img.width >= img.height ? 2600 : 2000), name: f.name}); URL.revokeObjectURL(url);
+      } else throw new Error(t('Nur PDF- oder Bilddateien.'));
+    } catch (err) { st.textContent = f.name + ': ' + err.message; continue; }
+  }
+  if (!$('#scTitle').value && files[0]) $('#scTitle').value = files[0].name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+  st.textContent = ''; renderScanPages();
+}
+function renderScanPages(){
+  const w = $('#scPages'); w.innerHTML = '';
+  SC.pages.forEach((pg, i) => {
+    const d = document.createElement('div'); d.className = 'scpg';
+    const th = canvasFrom(pg.c, 220); d.append(th);
+    const bar = document.createElement('div'); bar.className = 'scbar';
+    bar.innerHTML = '<span>' + (i + 1) + '</span><button data-a="up" aria-label="' + t('Nach vorn') + '">◀</button><button data-a="down" aria-label="' + t('Nach hinten') + '">▶</button><button data-a="del" aria-label="' + t('Entfernen') + '">✕</button>';
+    bar.addEventListener('click', ev => {
+      const a = ev.target.dataset.a; if (!a) return;
+      if (a === 'del') SC.pages.splice(i, 1);
+      if (a === 'up' && i > 0) [SC.pages[i-1], SC.pages[i]] = [SC.pages[i], SC.pages[i-1]];
+      if (a === 'down' && i < SC.pages.length - 1) [SC.pages[i+1], SC.pages[i]] = [SC.pages[i], SC.pages[i+1]];
+      renderScanPages();
+    });
+    d.append(bar); w.append(d);
+  });
+  $('#scSave').disabled = !SC.pages.length;
+}
+$('#scanBtn').addEventListener('click', () => { SC.pages = []; $('#scTitle').value = ''; $('#scArtist').value = ''; $('#scStat').textContent = ''; renderScanPages(); openSheet('scan'); });
+['scFile', 'scCam'].forEach(id => $('#' + id).addEventListener('change', async ev => { const fs = Array.from(ev.target.files); ev.target.value = ''; await addScanFiles(fs); }));
+$('#scSave').addEventListener('click', async () => {
+  if (!SC.pages.length) return;
+  const hi = $('#scEnh').checked;
+  const pages = SC.pages.map(pg => { const c = canvasFrom(pg.c, pg.c.width >= pg.c.height ? 2600 : 2000); if (hi) enhance(c); return c.toDataURL('image/jpeg', 0.82); });
+  const title = $('#scTitle').value.trim() || t('Eingescannte Noten');
+  const rec = {id: 'scan-' + Date.now().toString(36), title, composer: $('#scArtist').value.trim(), cat:'Eingescannt', format:'scan', pages, diff: +$('#scDiff').value || 0, added: Date.now(), owner: USER && USER.id};
+  const ok = await DB.put(rec);
+  await loadLibrary(); closeSheets(); renderLib();
+  const en = library.find(x => x.id === rec.id); if (en) openDetail(en);
+  if (!ok) showBanner(t(' · nur für diese Sitzung gespeichert').replace(/^ · /, ''), 5000);
+  if ($('#scOmr').checked) startRecognition(rec.id);
+});
+
+/* Notenansicht für Scans */
+const SV = {pages: [], i: 0, fit: 'width', metro: false, timer: 0, next: 0, beat: 0};
+async function openScanView(e){
+  const rec = await DB.get(e.id); if (!rec || !rec.pages) return;
+  stopPreview();
+  if (S.playing) togglePlay();
+  SV.pages = rec.pages; SV.i = 0; SV.title = rec.title;
+  $('#svTitle').textContent = rec.title;
+  meta.recent = [e.id].concat(meta.recent.filter(x => x !== e.id)).slice(0, 12); saveMeta();
+  $('#lib').hidden = true; $('#detail').hidden = true; $('#scanview').hidden = false;
+  if (!history.state || history.state.v !== 'scan') { try { history.pushState({v:'scan'}, ''); } catch(err){} }
+  showScanPage();
+}
+function showScanPage(){
+  const n = SV.pages.length; SV.i = Math.max(0, Math.min(n - 1, SV.i));
+  const img = $('#svImg'); img.src = SV.pages[SV.i];
+  $('#svPage').textContent = t('Seite {i} von {n}', {i: SV.i + 1, n});
+  $('#svBody').classList.toggle('fitpage', SV.fit === 'page');
+  $('#svBody').scrollTop = 0;
+  $('#svPrev').disabled = SV.i === 0; $('#svNext').disabled = SV.i >= n - 1;
+}
+function closeScanView(){ stopMetro(); $('#scanview').hidden = true; }
+$('#svBack').addEventListener('click', () => { closeScanView(); showCatalog(); });
+$('#svPrev').addEventListener('click', () => { SV.i--; showScanPage(); });
+$('#svNext').addEventListener('click', () => { SV.i++; showScanPage(); });
+$('#svFit').addEventListener('click', () => { SV.fit = SV.fit === 'width' ? 'page' : 'width'; $('#svFit').textContent = SV.fit === 'width' ? t('Ganze Seite') : t('Seitenbreite'); showScanPage(); });
+$('#svBody').addEventListener('click', ev => {
+  const r = $('#svBody').getBoundingClientRect();
+  if (ev.clientX > r.left + r.width * 0.75 && SV.i < SV.pages.length - 1) { SV.i++; showScanPage(); }
+  else if (ev.clientX < r.left + r.width * 0.25 && SV.i > 0) { SV.i--; showScanPage(); }
+});
+$('#svMidi').addEventListener('click', connectMidi);
+// Metronom
+function click(when, accent){
+  const a = audio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.frequency.value = accent ? 1500 : 1000; g.gain.setValueAtTime(0.0001, when);
+  g.gain.exponentialRampToValueAtTime(accent ? 0.5 : 0.3, when + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, when + 0.06);
+  o.connect(g); g.connect(ac.destination); o.start(when); o.stop(when + 0.08);
+}
+function startMetro(){
+  const a = audio(); if (!a) return;
+  SV.metro = true; SV.next = a.currentTime + 0.1; SV.beat = 0; $('#svMetro').setAttribute('aria-pressed', 'true');
+  SV.timer = setInterval(() => {
+    const bpm = Math.max(30, Math.min(240, +$('#svBpm').value || 80)), per = 60 / bpm, beats = +$('#svBeats').value || 4;
+    while (SV.next < ac.currentTime + 0.25) { click(SV.next, SV.beat % beats === 0); SV.next += per; SV.beat++; }
+  }, 50);
+}
+function stopMetro(){ SV.metro = false; clearInterval(SV.timer); $('#svMetro').setAttribute('aria-pressed', 'false'); }
+$('#svMetro').addEventListener('click', () => { if (SV.metro) stopMetro(); else startMetro(); });
+// kleine Klaviatur mit gedrückten Tasten
+const kb2 = $('#svKb'), k2 = kb2.getContext('2d');
+function drawMiniKb(){
+  const r = kb2.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (kb2.width !== Math.round(r.width * dpr)) { kb2.width = Math.round(r.width * dpr); kb2.height = Math.round(r.height * dpr); }
+  k2.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const lo2 = S.kb === '88' ? 21 : 36, hi2 = S.kb === '88' ? 108 : 96;
+  let nW = 0; for (let p = lo2; p <= hi2; p++) if (!isBlack(p)) nW++;
+  const ww = r.width / nW, H2 = r.height;
+  k2.fillStyle = C.panel; k2.fillRect(0, 0, r.width, H2);
+  const pos = {}; let wi = 0;
+  for (let p = lo2; p <= hi2; p++) { if (!isBlack(p)) { pos[p] = wi * ww; wi++; } else pos[p] = wi * ww - ww * 0.3; }
+  for (let p = lo2; p <= hi2; p++) { if (isBlack(p)) continue; k2.fillStyle = held.has(p) ? C.touch : C.ivory; k2.fillRect(pos[p] + 0.5, 0, ww - 1, H2);
+    if (p % 12 === 0 && ww >= 12) { k2.fillStyle = 'rgba(20,20,26,0.55)'; k2.font = '600 ' + Math.min(11, ww * 0.45) + 'px ' + FONT_BODY; k2.textAlign = 'center'; k2.textBaseline = 'bottom'; k2.fillText(nm(p), pos[p] + ww / 2, H2 - 3); } }
+  for (let p = lo2; p <= hi2; p++) { if (!isBlack(p)) continue; k2.fillStyle = held.has(p) ? C.touch : C.ebony; k2.fillRect(pos[p], 0, ww * 0.6, H2 * 0.6); }
+}
+// Partitur zuordnen: aus Scan einen spielbaren Song machen
+async function attachScore(e, file){
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  let format, data;
+  if (ext === 'mid' || ext === 'midi') { format = 'mid'; data = await file.arrayBuffer(); }
+  else if (ext === 'mxl') { format = 'xml'; data = await unzipMxl(await file.arrayBuffer()); }
+  else if (ext === 'xml' || ext === 'musicxml') { format = 'xml'; data = await file.text(); }
+  else throw new Error(t('Dieses Dateiformat kenne ich nicht. Erlaubt sind .musicxml, .mxl, .xml und .mid.'));
+  const rec = await DB.get(e.id); if (!rec) throw new Error(t('Song nicht gefunden.'));
+  Object.assign(rec, {format, data, mod: Date.now()}); delete rec.omr;
+  const song = songFromRecord(rec);
+  Object.assign(rec, {dur: song.dur, hands: song.hands, count: song.notes.length, diff: songDiff(song)});
+  await DB.put(rec); baseCache.delete(e.id);
+  await loadLibrary(); const ne = library.find(x => x.id === e.id); if (ne) openDetail(ne);
+}
+
+/* ---------- Notenerkennung (OMR) ---------- */
+/* Piano Hero – Notenerkennung (OMR) für gedruckte Klaviernoten.
+   Eingabe: Graustufenbild (Uint8Array, w*h). Ausgabe: Notenzeilen, Takte, Notenköpfe mit Tonhöhe und Dauer.
+   Klassische Bildverarbeitung, keine KI: funktioniert für saubere, gedruckte Noten; Fotos sollten gerade und gut ausgeleuchtet sein. */
+function omrPage(gray, w, h, opt) {
+  opt = opt || {};
+  const LS_T = 14;                      // Ziel-Linienabstand in Pixeln (Arbeitsauflösung)
+
+  /* ---------- Hilfen ---------- */
+  function otsu(g) {
+    const hist = new Float64Array(256); for (let i = 0; i < g.length; i += 3) hist[g[i]]++;
+    let tot = 0, sum = 0; for (let i = 0; i < 256; i++) { tot += hist[i]; sum += i * hist[i]; }
+    let sB = 0, wB = 0, best = 0, th = 128;
+    for (let i = 0; i < 256; i++) { wB += hist[i]; if (!wB) continue; const wF = tot - wB; if (!wF) break; sB += i * hist[i];
+      const mB = sB / wB, mF = (sum - sB) / wF, v = wB * wF * (mB - mF) * (mB - mF); if (v > best) { best = v; th = i; } }
+    return th;
+  }
+  function runStats(bin, W, H) {           // häufigste schwarze / weiße senkrechte Lauflängen
+    const bh = new Float64Array(W > 0 ? 200 : 1), wh = new Float64Array(400), pairH = new Float64Array(400);
+    const step = Math.max(1, Math.floor(W / 400));
+    for (let x = 0; x < W; x += step) {
+      let y = 0, prevB = -1;
+      while (y < H) {
+        const v = bin[y * W + x]; let y2 = y; while (y2 < H && bin[y2 * W + x] === v) y2++;
+        const len = y2 - y;
+        if (v) { if (len < 200) bh[len]++; prevB = len; }
+        else if (y > 0 && y2 < H) { if (len < 400) wh[len]++; if (prevB > 0 && prevB + len < 400) pairH[prevB + len]++; }
+        y = y2;
+      }
+    }
+    const mode = (a, from) => { let m = from, b = -1; for (let i = from; i < a.length; i++) if (a[i] > b) { b = a[i]; m = i; } return m; };
+    const lt = mode(bh, 1), sp = mode(pairH, 4);
+    return {lt, ls: sp};
+  }
+  function skewAngle(bin, W, H) {
+    const pts = []; const step = Math.max(1, Math.round(Math.sqrt(W * H / 1.5e6)));
+    for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (bin[y * W + x]) pts.push(x, y);
+    const n = pts.length / 2; if (n < 100) return 0;
+    const sk = Math.max(1, Math.floor(n / 250000));
+    function score(a) {
+      const t = Math.tan(a), off = W * Math.abs(t) + 2, hist = new Float64Array(Math.ceil(H + 2 * off) + 2);
+      for (let i = 0; i < n; i += sk) { const y = pts[2 * i + 1] - pts[2 * i] * t + off; hist[y | 0]++; }
+      let s = 0; for (let i = 0; i < hist.length; i++) s += hist[i] * hist[i]; return s;
+    }
+    let best = 0, bs = -1;
+    for (let d = -5; d <= 5.001; d += 0.2) { const s = score(d * Math.PI / 180); if (s > bs) { bs = s; best = d; } }
+    let b2 = best;
+    for (let d = best - 0.2; d <= best + 0.2001; d += 0.04) { const s = score(d * Math.PI / 180); if (s > bs) { bs = s; b2 = d; } }
+    return b2 * Math.PI / 180;
+  }
+
+  /* ---------- 1. Maßstab und Schräglage ---------- */
+  function adaptive(g, ww, hh, R, out) {          // Schwelle aus dem örtlichen Mittelwert (gleicht ungleichmäßiges Licht aus)
+    const I = new Float64Array((ww + 1) * (hh + 1));
+    for (let y = 0; y < hh; y++) { let r = 0; for (let x = 0; x < ww; x++) { r += g[y * ww + x]; I[(y + 1) * (ww + 1) + x + 1] = I[y * (ww + 1) + x + 1] + r; } }
+    const th = otsu(g);
+    for (let y = 0; y < hh; y++) {
+      const y0 = Math.max(0, y - R), y1 = Math.min(hh, y + R + 1);
+      for (let x = 0; x < ww; x++) {
+        const x0 = Math.max(0, x - R), x1 = Math.min(ww, x + R + 1);
+        const m = (I[y1 * (ww + 1) + x1] - I[y0 * (ww + 1) + x1] - I[y1 * (ww + 1) + x0] + I[y0 * (ww + 1) + x0]) / ((x1 - x0) * (y1 - y0));
+        const v = g[y * ww + x];
+        out[y * ww + x] = (v < m * 0.86 && m - v > 18) || v < Math.min(th, m) * 0.55 ? 1 : 0;
+      }
+    }
+    return out;
+  }
+  const bin0 = adaptive(gray, w, h, Math.round(Math.max(12, Math.min(w, h) / 45)), new Uint8Array(w * h));
+  const rs0 = runStats(bin0, w, h);
+  if (!(rs0.ls >= 5)) return {error: 'nostaff'};
+  const ang = opt.noDeskew ? 0 : skewAngle(bin0, w, h);
+  let s = rs0.ls < 12 ? 14 / rs0.ls : rs0.ls > 21 ? 18 / rs0.ls : 1; s = Math.max(0.35, Math.min(3, s));
+  const W = Math.round(w * s), H = Math.round(h * s);
+  const ca = Math.cos(ang), sa = Math.sin(ang), cxo = w / 2, cyo = h / 2, cxn = W / 2, cyn = H / 2;
+  // Arbeitskoordinaten -> Originalkoordinaten
+  const toOrig = (X, Y) => { const u = (X - cxn) / s, v = (Y - cyn) / s; return [cxo + u * ca - v * sa, cyo + u * sa + v * ca]; };
+  const toWork = (x, y) => { const u = x - cxo, v = y - cyo; return [cxn + (u * ca + v * sa) * s, cyn + (-u * sa + v * ca) * s]; };
+  const G = new Uint8Array(W * H);
+  if (s === 1 && Math.abs(ang) < 1e-4) G.set(gray);
+  else for (let Y = 0; Y < H; Y++) for (let X = 0; X < W; X++) {
+    const p = toOrig(X, Y), x = p[0], y = p[1];
+    if (x < 0 || y < 0 || x >= w - 1 || y >= h - 1) { G[Y * W + X] = 255; continue; }
+    const x0 = x | 0, y0 = y | 0, fx = x - x0, fy = y - y0, i = y0 * w + x0;
+    G[Y * W + X] = (gray[i] * (1 - fx) + gray[i + 1] * fx) * (1 - fy) + (gray[i + w] * (1 - fx) + gray[i + w + 1] * fx) * fy;
+  }
+
+  /* ---------- 2. Adaptive Binarisierung ---------- */
+  const B = adaptive(G, W, H, Math.round(4 * rs0.ls * s), new Uint8Array(W * H));
+  const rs = runStats(B, W, H);
+  const ls = rs.ls >= 6 ? rs.ls : LS_T, lt = Math.max(1, Math.min(rs.lt, Math.round(ls / 3)));
+  const at = (x, y) => (x >= 0 && y >= 0 && x < W && y < H) ? B[y * W + x] : 0;
+
+  /* ---------- 3. Notenzeilen finden (in senkrechten Streifen, folgt Krümmungen) ---------- */
+  const SW = Math.round(12 * ls), cands = [];
+  const T = new Uint8Array(W * H);                 // nur dünne waagrechte Pixel (Linien), ohne Köpfe und Balken
+  { const mr = Math.round(lt * 2 + 1); for (let x = 0; x < W; x++) { let y = 0; while (y < H) { if (!B[y * W + x]) { y++; continue; } let y2 = y; while (y2 < H && B[y2 * W + x]) y2++; if (y2 - y <= mr) for (let k = y; k < y2; k++) T[k * W + x] = 1; y = y2; } } }
+  const STEP = Math.round(SW / 2);
+  for (let x0 = 0, si = 0; x0 < W; x0 += STEP, si++) {
+    const x1 = Math.min(W, x0 + SW), wd = x1 - x0; if (wd < SW / 2) break;
+    for (const [IMG, th, thick] of [[T, 0.35, lt * 2.5 + 2], [B, 0.5, lt * 3 + 3]]) {
+      const rc = new Int32Array(H);
+      for (let y = 0; y < H; y++) { let c = 0; const o = y * W; for (let x = x0; x < x1; x++) c += IMG[o + x]; rc[y] = c; }
+      const peaks = [], pw = [];
+      for (let y = 0; y < H; y++) if (rc[y] >= th * wd) {
+        let y2 = y, sw = 0, sy = 0, mx = 0; while (y2 < H && rc[y2] >= th * wd) { sw += rc[y2]; sy += rc[y2] * y2; if (rc[y2] > mx) mx = rc[y2]; y2++; }
+        if (y2 - y <= thick) { peaks.push(sy / sw); pw.push(mx / wd); } y = y2;
+      }
+      const groups = [];
+      for (let i = 0; i < peaks.length; i++) {
+        // alle Fünfergruppen ab Peak i mit gleichmäßigem Abstand
+        const rec = (idx, gap) => {
+          if (idx.length === 5) { const sc = Math.min.apply(null, idx.map(j => pw[j])); groups.push({idx: idx.slice(), sc}); return; }
+          const prev = peaks[idx[idx.length - 1]];
+          for (let j = idx[idx.length - 1] + 1; j < peaks.length && peaks[j] < prev + 1.4 * ls; j++) {
+            const g = peaks[j] - prev; if (g < 0.7 * ls) continue;
+            if (gap && Math.abs(g - gap) > 0.2 * gap + 1) continue;
+            rec(idx.concat(j), gap || g);
+          }
+        };
+        rec([i], 0);
+      }
+      groups.forEach(g => cands.push({si, xc: (x0 + x1) / 2, ys: g.idx.map(j => peaks[j]), sc: g.sc * (IMG === B ? 0.9 : 1)}));
+    }
+  }
+  // Ketten über die Streifen: von der stärksten Gruppe aus nach links und rechts verfolgen
+  const nStrips = Math.ceil(W / STEP), bySi = []; for (let i = 0; i <= nStrips; i++) bySi.push([]);
+  cands.forEach(c => bySi[c.si].push(c));
+  const chains = [], dead = new Set();
+  const overl = (c, ys) => !(c.ys[4] < ys[0] - 0.5 * ls || c.ys[0] > ys[4] + 0.5 * ls);
+  const order = cands.slice().sort((a, b) => b.sc - a.sc);
+  for (const seed of order) {
+    if (dead.has(seed) || seed.sc < 0.45) continue;
+    const pts = [seed];
+    for (const dir of [1, -1]) {
+      let miss = 0, si = seed.si + dir;
+      while (si >= 0 && si <= nStrips && miss <= 4) {
+        const lastP = dir > 0 ? pts[pts.length - 1] : pts[0], prevP = dir > 0 ? pts[pts.length - 2] : pts[1];
+        const xc = si * STEP + SW / 2, slope = prevP ? (lastP.ys[2] - prevP.ys[2]) / (lastP.xc - prevP.xc) : 0;
+        const pred = lastP.ys.map(y => y + slope * (xc - lastP.xc));
+        let best = null, bd = 1e9;
+        bySi[si].forEach(c => { if (dead.has(c)) return; const d = c.ys.reduce((s, y, k) => s + Math.abs(y - pred[k]), 0) / 5; if (d < bd) { bd = d; best = c; } });
+        if (best && bd < 0.45 * ls) { if (dir > 0) pts.push(best); else pts.unshift(best); miss = 0; } else miss++;
+        si += dir;
+      }
+    }
+    pts.forEach(p => bySi[p.si].forEach(c => { if (overl(c, p.ys)) dead.add(c); }));
+    chains.push({pts});
+  }
+  // Bruchstücke derselben Zeile verbinden
+  for (let again = true; again;) { again = false;
+    for (let i = 0; i < chains.length && !again; i++) for (let j = 0; j < chains.length && !again; j++) {
+      if (i === j) continue; const A = chains[i], B = chains[j], a = A.pts[A.pts.length - 1], b = B.pts[0];
+      if (b.si <= a.si) continue;
+      if (Math.abs(a.ys[2] - b.ys[2]) < 1.0 * ls && !chains.some(C => C !== A && C !== B && Math.abs(C.pts[0].ys[2] - a.ys[2]) < 2.5 * ls && C.pts.some(p => p.si > a.si && p.si < b.si))) {
+        A.pts = A.pts.concat(B.pts); chains.splice(j, 1); again = true; }
+    } }
+  // kurze Ketten, die eine längere Zeile überlappen (um eine Linie verschoben), verwerfen
+  const yAt = (ch, k, x) => { const P = ch.pts; let i = 0; while (i < P.length - 2 && P[i + 1].xc < x) i++; const a = P[i], b = P[i + 1] || a; const f = b.xc === a.xc ? 0 : Math.max(-2, Math.min(3, (x - a.xc) / (b.xc - a.xc))); return a.ys[k] + (b.ys[k] - a.ys[k]) * f; };
+  chains.sort((a, b) => b.pts.length - a.pts.length);
+  for (let i = chains.length - 1; i >= 0; i--) { const C = chains[i]; if (C.pts.length >= 4) continue;
+    if (chains.some((D, j) => j < i && D.pts.length > C.pts.length && C.pts.every(p => !(yAt(D, 4, p.xc) < p.ys[0] - 0.5 * ls || yAt(D, 0, p.xc) > p.ys[4] + 0.5 * ls)))) chains.splice(i, 1); }
+  let staves = chains.filter(ch => ch.pts.length >= 2 || (W < 30 * ls)).map(ch => {
+    const pts = ch.pts;
+    const ly = (k, x) => {
+      if (pts.length === 1) return pts[0].ys[k];
+      let i = 0; while (i < pts.length - 2 && pts[i + 1].xc < x) i++;
+      const a = pts[i], b = pts[i + 1]; let t = (x - a.xc) / (b.xc - a.xc);
+      if (t < 0 && i === 0) t = Math.max(t, -3); if (t > 1) t = Math.min(t, 4);
+      return a.ys[k] + (b.ys[k] - a.ys[k]) * t;
+    };
+    return {pts, ly};
+  });
+  // horizontale Ausdehnung
+  staves.forEach(st => {
+    const hasLine = x => { let c = 0; for (let k = 0; k < 5; k++) { const y = Math.round(st.ly(k, x)); if (at(x, y) || at(x, y - 1) || at(x, y + 1)) c++; } return c >= 4; };
+    const walk = (x, dir) => { let miss = 0, last = x; while (x > 0 && x < W - 1 && miss < 0.6 * ls) { if (hasLine(x)) { last = x; miss = 0; } else miss++; x += dir; } return last; };
+    st.xL = walk(Math.round(st.pts[0].xc), -1); st.xR = walk(Math.round(st.pts[st.pts.length - 1].xc), 1);
+    st.mid = x => st.ly(2, x); st.sp = x => (st.ly(4, x) - st.ly(0, x)) / 4;
+  });
+  staves = staves.filter(st => st.xR - st.xL > 8 * ls).sort((a, b) => a.mid(W / 2) - b.mid(W / 2));
+  if (!staves.length) return {error: 'nostaff', ls, W, H};
+
+  /* ---------- 4. Systeme (Klammer / Verbindungslinie) ---------- */
+  function connected(a, b) {
+    const yA = a.ly(4, a.xL), yB = b.ly(0, b.xL); if (yB - yA > 12 * ls) return false;
+    for (let x = Math.min(a.xL, b.xL) - Math.round(2.5 * ls); x <= Math.min(a.xL, b.xL) + Math.round(0.6 * ls); x++) {
+      let ok = 0, n = 0; for (let y = Math.round(yA); y <= Math.round(yB); y++) { n++; if (at(x, y) || at(x - 1, y) || at(x + 1, y)) ok++; }
+      if (n && ok / n > 0.9) return true;
+    }
+    return false;
+  }
+  const systems = []; let cur = [staves[0]];
+  for (let i = 1; i < staves.length; i++) { if (connected(staves[i - 1], staves[i])) cur.push(staves[i]); else { systems.push(cur); cur = [staves[i]]; } }
+  systems.push(cur);
+  // Kein Verbinder erkannt, aber gerade Anzahl einzelner Zeilen: paarweise (Klavier)
+  if (systems.every(sy => sy.length === 1) && staves.length % 2 === 0 && staves.length > 1) {
+    const gaps = []; for (let i = 1; i < staves.length; i++) gaps.push(staves[i].ly(0, W / 2) - staves[i - 1].ly(4, W / 2));
+    const odd = gaps.filter((g, i) => i % 2 === 0), even = gaps.filter((g, i) => i % 2 === 1);
+    if (!even.length || Math.max.apply(null, odd) < Math.min.apply(null, even) * 1.05 || opt.pairs) {
+      systems.length = 0; for (let i = 0; i < staves.length; i += 2) systems.push([staves[i], staves[i + 1]]);
+    }
+  }
+
+  // einzelne Zeilen paarweise verbinden, wenn die übrigen Systeme Klavier-Doppelzeilen sind
+  {
+    const gapOf = (a, b) => b.ly(0, W / 2) - a.ly(4, W / 2);
+    const intra = systems.filter(sy => sy.length === 2).map(sy => gapOf(sy[0], sy[1])).sort((a, b) => a - b);
+    if (intra.length && intra.length >= systems.filter(sy => sy.length === 1).length / 2) {
+      const med = intra[intra.length >> 1];
+      for (let i = 0; i < systems.length - 1; i++) {
+        if (systems[i].length === 1 && systems[i + 1].length === 1 && gapOf(systems[i][0], systems[i + 1][0]) <= med * 1.35) { systems[i].push(systems[i + 1][0]); systems.splice(i + 1, 1); }
+      }
+    }
+  }
+  /* ---------- 5. Notenlinien entfernen ---------- */
+  const N = new Uint8Array(B); const maxRun = Math.round(lt * 1.6 + 1.5);
+  staves.forEach(st => {
+    for (let x = Math.max(0, st.xL - 2); x <= Math.min(W - 1, st.xR + 2); x++) for (let k = 0; k < 5; k++) {
+      const yc = Math.round(st.ly(k, x)); let y = -1;
+      for (let d = 0; d <= lt + 1 && y < 0; d++) { if (at(x, yc + d)) y = yc + d; else if (at(x, yc - d)) y = yc - d; }
+      if (y < 0) continue; let a = y, b = y; while (a > 0 && B[(a - 1) * W + x]) a--; while (b < H - 1 && B[(b + 1) * W + x]) b++;
+      if (b - a + 1 > maxRun) continue;
+      if (at(x - 1, a - 1) || at(x + 1, a - 1) || at(x - 1, b + 1) || at(x + 1, b + 1)) { if ((at(x - 1, a - 1) || at(x + 1, a - 1)) && (at(x, a - 2) || at(x, a - 3))) continue; if ((at(x - 1, b + 1) || at(x + 1, b + 1)) && (at(x, b + 2) || at(x, b + 3))) continue; }
+      for (let yy = a; yy <= b; yy++) N[yy * W + x] = 0;
+    }
+  });
+  const nat = (x, y) => (x >= 0 && y >= 0 && x < W && y < H) ? N[y * W + x] : 0;
+
+  /* ---------- 6. Löcher füllen (halbe / ganze Noten) ---------- */
+  const F = new Uint8Array(N), holeMark = new Uint8Array(W * H);
+  function fillHoles(IMG, maxH) {
+    const lab = new Int32Array(W * H), stack = new Int32Array(W * H); let L = 0;
+    const amax = 1.0 * ls * ls, amin = 0.05 * ls * ls;
+    for (let i = 0; i < W * H; i++) {
+      if (IMG[i] || lab[i]) continue; L++; let sp = 0, cnt = 0, border = false, x0 = W, x1 = 0, y0 = H, y1 = 0; stack[sp++] = i; lab[i] = L;
+      const pix = [];
+      while (sp) { const p = stack[--sp], x = p % W, y = (p - x) / W; cnt++; if (cnt <= amax + 1) pix.push(p);
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+        if (x === 0 || y === 0 || x === W - 1 || y === H - 1) border = true;
+        if (x > 0 && !IMG[p - 1] && !lab[p - 1]) { lab[p - 1] = L; stack[sp++] = p - 1; }
+        if (x < W - 1 && !IMG[p + 1] && !lab[p + 1]) { lab[p + 1] = L; stack[sp++] = p + 1; }
+        if (y > 0 && !IMG[p - W] && !lab[p - W]) { lab[p - W] = L; stack[sp++] = p - W; }
+        if (y < H - 1 && !IMG[p + W] && !lab[p + W]) { lab[p + W] = L; stack[sp++] = p + W; } }
+      if (!border && cnt >= amin && cnt <= amax && x1 - x0 < 1.4 * ls && y1 - y0 < maxH) pix.forEach(p => { F[p] = 1; holeMark[p] = 1; });
+    }
+  }
+  fillHoles(N, 1.0 * ls);
+  fillHoles(B, 0.62 * ls);               // Kopf, dessen Rand auf einer Linie liegt (durch Linienentfernung geöffnet)
+  /* ---------- 7. Distanztransformation -> Kerne der Notenköpfe ---------- */
+  const D = new Uint16Array(W * H);
+  for (let i = 0; i < W * H; i++) D[i] = F[i] ? 60000 : 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x; if (!D[i]) continue;
+    let v = D[i]; if (x > 0) v = Math.min(v, D[i - 1] + 3); else v = Math.min(v, 3); if (y > 0) { v = Math.min(v, D[i - W] + 3); if (x > 0) v = Math.min(v, D[i - W - 1] + 4); if (x < W - 1) v = Math.min(v, D[i - W + 1] + 4); } else v = Math.min(v, 3); D[i] = v; }
+  for (let y = H - 1; y >= 0; y--) for (let x = W - 1; x >= 0; x--) { const i = y * W + x; if (!D[i]) continue;
+    let v = D[i]; if (x < W - 1) v = Math.min(v, D[i + 1] + 3); if (y < H - 1) { v = Math.min(v, D[i + W] + 3); if (x < W - 1) v = Math.min(v, D[i + W + 1] + 4); if (x > 0) v = Math.min(v, D[i + W - 1] + 4); } D[i] = v; }
+  const thr = Math.round(3 * (opt.core || 0.3) * ls);
+  const blobs = [];
+  {
+    const lab = new Int32Array(W * H), stack = []; let L = 0;
+    for (let i = 0; i < W * H; i++) {
+      if (D[i] < thr || lab[i]) continue; L++; stack.push(i); lab[i] = L;
+      let n = 0, sx = 0, sy = 0, x0 = W, x1 = 0, y0 = H, y1 = 0, hole = 0, mx = 0;
+      while (stack.length) { const p = stack.pop(), x = p % W, y = (p - x) / W; n++; sx += x; sy += y; if (holeMark[p]) hole++; if (D[p] > mx) mx = D[p];
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+        for (const q of [p - 1, p + 1, p - W, p + W]) if (q >= 0 && q < W * H && D[q] >= thr && !lab[q]) { lab[q] = L; stack.push(q); } }
+      blobs.push({cx: sx / n, cy: sy / n, w: x1 - x0 + 1, h: y1 - y0 + 1, n, hole, x0, x1, y0, y1, mx: mx / 3});
+    }
+  }
+
+  /* ---------- 8. Schlüssel und Vorzeichen je Notenzeile ---------- */
+  function comps(x0, x1, y0, y1, img) {          // Zusammenhangskomponenten in einem Fenster
+    x0 = Math.max(0, Math.round(x0)); x1 = Math.min(W - 1, Math.round(x1)); y0 = Math.max(0, Math.round(y0)); y1 = Math.min(H - 1, Math.round(y1));
+    const ww = x1 - x0 + 1, hh = y1 - y0 + 1; if (ww <= 0 || hh <= 0) return [];
+    const lab = new Int32Array(ww * hh), out = []; let L = 0;
+    for (let j = 0; j < ww * hh; j++) {
+      const xx = j % ww, yy = (j - xx) / ww; if (lab[j] || !img[(y0 + yy) * W + x0 + xx]) continue;
+      L++; const st = [j]; lab[j] = L; const c = {x0: 1e9, x1: -1, y0: 1e9, y1: -1, n: 0, pts: []};
+      while (st.length) { const q = st.pop(), qx = q % ww, qy = (q - qx) / ww; c.n++; c.pts.push(q);
+        if (qx < c.x0) c.x0 = qx; if (qx > c.x1) c.x1 = qx; if (qy < c.y0) c.y0 = qy; if (qy > c.y1) c.y1 = qy;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = qx + dx, ny = qy + dy; if (nx < 0 || ny < 0 || nx >= ww || ny >= hh) continue;
+          const k = ny * ww + nx; if (!lab[k] && img[(y0 + ny) * W + x0 + nx]) { lab[k] = L; st.push(k); } } }
+      c.x0 += x0; c.x1 += x0; c.y0 += y0; c.y1 += y0; c.w = c.x1 - c.x0 + 1; c.h = c.y1 - c.y0 + 1; c.wx = x0; c.wy = y0; c.ww = ww;
+      c.has = (x, y) => { const xx = x - x0, yy = y - y0; return xx >= 0 && yy >= 0 && xx < ww && yy < hh && lab[yy * ww + xx] === c.L; }; c.L = L;
+      out.push(c);
+    }
+    return out;
+  }
+  function mergeV(cs) {                            // senkrecht knapp getrennte Teile (durch Linienentfernung) zusammenfassen
+    cs = cs.slice().sort((a, b) => a.x0 - b.x0); let again = true;
+    while (again) { again = false;
+      for (let i = 0; i < cs.length && !again; i++) for (let j = i + 1; j < cs.length && !again; j++) {
+        const a = cs[i], b = cs[j]; const ox = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0); const gy = Math.max(a.y0, b.y0) - Math.min(a.y1, b.y1);
+        if (ox >= -0.15 * ls && gy <= lt + 2 && gy > -0.5 * ls && Math.max(a.x1, b.x1) - Math.min(a.x0, b.x0) < 1.3 * ls) {
+          const m = {x0: Math.min(a.x0, b.x0), x1: Math.max(a.x1, b.x1), y0: Math.min(a.y0, b.y0), y1: Math.max(a.y1, b.y1), n: a.n + b.n};
+          m.w = m.x1 - m.x0 + 1; m.h = m.y1 - m.y0 + 1; cs.splice(j, 1); cs[i] = m; again = true; }
+      } }
+    return cs;
+  }
+  function strokesIn(x0, x1, y0, y1, minLen) {   // dünne senkrechte Striche in einem Fenster (Linien entfernt)
+    x0 = Math.max(0, Math.round(x0)); x1 = Math.min(W - 1, Math.round(x1)); y0 = Math.max(0, Math.round(y0)); y1 = Math.min(H - 1, Math.round(y1));
+    const cols = [];
+    for (let x = x0; x <= x1; x++) { let run = 0, gap = 0, st0 = -1, best = {len: 0}; let cs = -1;
+      for (let y = y0; y <= y1; y++) { if (nat(x, y)) { if (run === 0) cs = y; run += 1 + gap; gap = 0; if (run > best.len) best = {len: run, a: cs, b: y}; } else if (run && ++gap > lt + 1) { run = 0; gap = 0; } }
+      cols.push(best); }
+    const res = []; let cur = null;
+    cols.forEach((c, i) => { if (c.len >= minLen) { if (cur && i - cur.i1 <= 1) { cur.i1 = i; if (c.len > cur.len) { cur.len = c.len; cur.a = c.a; cur.b = c.b; } } else { cur = {i0: i, i1: i, len: c.len, a: c.a, b: c.b}; res.push(cur); } } });
+    return res.map(r => ({x: x0 + (r.i0 + r.i1) / 2, w: r.i1 - r.i0 + 1, y0: r.a, y1: r.b, len: r.len})).filter(r => r.w <= 0.4 * ls);
+  }
+  function strokes(c) {                             // senkrechte Striche in einer Komponente zählen
+    const cols = []; let best = 0;
+    for (let x = c.x0; x <= c.x1; x++) { let run = 0, mr = 0, gap = 0; for (let y = c.y0; y <= c.y1; y++) { if (nat(x, y)) { run += 1 + gap; gap = 0; if (run > mr) mr = run; } else if (++gap > lt + 1) { run = 0; gap = 0; } } cols.push(mr); if (mr > best) best = mr; }
+    const res = []; let inS = false;
+    cols.forEach((v, i) => { if (v >= 1.4 * ls) { if (!inS) { res.push({x: c.x0 + i, len: v}); inS = true; } else if (v > res[res.length - 1].len) res[res.length - 1].len = v; } else inS = false; });
+    return res;
+  }
+  function classifyAcc(c) {
+    if (c.h < 1.6 * ls || c.h > 3.8 * ls || c.w > 1.5 * ls || c.w < 0.35 * ls) return null;
+    const st = strokes(c);
+    if (st.length === 1) { const sx = st[0].x - c.x0; if (sx < c.w * 0.45) return 'flat'; return null; }
+    if (st.length === 2) {
+      const topA = (x) => { for (let y = c.y0; y <= c.y1; y++) if (nat(x, y) || nat(x + 1, y)) return y; return c.y1; };
+      const botA = (x) => { for (let y = c.y1; y >= c.y0; y--) if (nat(x, y) || nat(x + 1, y)) return y; return c.y0; };
+      const t0 = topA(st[0].x), t1 = topA(st[1].x), b0 = botA(st[0].x), b1 = botA(st[1].x);
+      if (t1 - t0 > 0.6 * ls && b1 - b0 > 0.6 * ls) return 'natural';
+      return 'sharp';
+    }
+    return null;
+  }
+  staves.forEach(st => {
+    const top = st.ly(0, st.xL), bot = st.ly(4, st.xL);
+    const cs = comps(st.xL, st.xL + 7 * ls, top - 4 * ls, bot + 4 * ls, N).filter(c => c.h > 2.5 * ls && c.x0 > st.xL - 0.5 * ls && c.w > 0.8 * ls)
+      .sort((a, b) => a.x0 - b.x0);
+    const c = cs[0]; st.clef = 'G'; st.hdr = st.xL + 4 * ls;
+    if (c) {
+      // nur der vordere Teil der Komponente zählt (Bögen/Klammern können anhängen)
+      let y0 = 1e9, y1 = -1, x1 = c.x0; const lim = c.x0 + 2.8 * ls;
+      c.pts.forEach(q => { const x = c.wx + q % c.ww, y = c.wy + Math.floor(q / c.ww); if (x > lim) return; if (y < y0) y0 = y; if (y > y1) y1 = y; if (x > x1) x1 = x; });
+      const up = (st.ly(0, c.x0) - y0) / ls, dn = (y1 - st.ly(4, c.x0)) / ls;
+      // Bassschlüssel: zwei Punkte rechts in den oberen Zwischenräumen
+      const dot = (y) => { let n = 0; for (let x = Math.round(x1 + 0.1 * ls); x <= Math.round(x1 + 1.0 * ls); x++) for (let d = -2; d <= 2; d++) n += nat(x, Math.round(y) + d); return n; };
+      const fDots = dot(st.ly(0, x1) + st.sp(x1) / 2) > 4 && dot(st.ly(1, x1) + st.sp(x1) / 2) > 4;
+      st.clef = (up > 0.9 && dn > 0.5) ? 'G' : fDots || y1 < st.ly(3, c.x0) + 0.6 * ls ? 'F' : (up > 0.9 || dn > 0.9) ? 'G' : 'F';
+      st.clefBox = c; st.hdr = Math.min(c.x1, x1 + (st.clef === 'F' ? 1.1 * ls : 0)) + 0.3 * ls;
+    }
+    st.keyEnd = st.hdr; st.key = 0;
+  });
+  /* ---------- 9. Notenköpfe prüfen (Hals, Akkord, ganze Note) ---------- */
+  let vrunX = 0, vrunPath = [];
+  const thinStem = (cy, dir, r, hh) => { for (let d = Math.round(hh + 0.2 * ls); d < r - 0.2 * ls; d += 2) { const x = vrunPath[d]; if (x !== undefined && hthick(x, cy + dir * d) <= 0.4 * ls) return true; } return false; };
+  function vrun(x, y, dir) {                        // senkrechter Strich, darf um je 1 Pixel seitlich wandern
+    let len = 0, gap = 0; y = Math.round(y); x = Math.round(x); const x0 = x; vrunX = x; vrunPath = [];
+    while (y >= 0 && y < H) {
+      if (nat(x, y)) { len += 1 + gap; gap = 0; }
+      else if (Math.abs(x + 1 - x0) <= 2 && nat(x + 1, y) && !nat(x - 1, y)) { x++; len += 1 + gap; gap = 0; }
+      else if (Math.abs(x - 1 - x0) <= 2 && nat(x - 1, y)) { x--; len += 1 + gap; gap = 0; }
+      else if (++gap > 2) break;
+      if (len === Math.round(1.6 * ls)) vrunX = x; vrunPath.push(x);
+      y += dir;
+    }
+    return len;
+  }
+  function hthick(x, y) { x = Math.round(x); y = Math.round(y); if (!nat(x, y)) return 99; let a = x, b = x; while (nat(a - 1, y)) a--; while (nat(b + 1, y)) b++; return b - a + 1; }
+  function nearestStaff(x, y) {
+    let best = null, bd = 1e9;
+    staves.forEach(st => { if (x < st.xL - ls || x > st.xR + ls) return; const d = Math.abs(y - st.mid(x)); if (d < bd) { bd = d; best = st; } });
+    return bd < 9 * ls ? best : null;
+  }
+  // hohe Kerne aus übereinanderliegenden Akkordköpfen (Terzen) aufteilen
+  for (let i = blobs.length - 1; i >= 0; i--) { const b = blobs[i];
+    if (b.h > 0.95 * ls && b.h < 4.5 * ls && b.w >= 0.4 * ls && b.w <= 1.3 * ls && b.mx >= 0.42 * ls * 3 / 3) {
+      const k = Math.max(2, Math.round((b.h - 0.35 * ls) / ls) + 1), top = b.y0 - thr / 3, sp = ((b.y1 + thr / 3) - top - ls) / (k - 1);
+      if (sp < 0.7 * ls || sp > 1.3 * ls) continue;
+      for (let j = 0; j < k; j++) blobs.push({cx: b.cx, cy: top + ls / 2 + j * sp, w: b.w, h: 0.45 * ls, n: b.n / k, hole: b.hole / k, x0: b.x0, x1: b.x1, y0: Math.round(top + j * sp), y1: Math.round(top + j * sp + ls), mx: b.mx, split: true});
+      blobs.splice(i, 1);
+    } }
+  const heads = [];
+  blobs.forEach(b => {
+    if (b.w > 1.6 * ls || b.h > 0.95 * ls || b.w < 0.25 * ls) return;
+    if (b.h < 0.28 * ls || b.mx < 0.42 * ls) return;
+    if (b.h > b.w * 1.25 && !b.hole) return;
+    const st = nearestStaff(b.cx, b.cy); if (!st) return;
+    if (b.cx < st.hdr + 0.2 * ls) return;
+    const hw = b.w / 2 + thr / 3, hh = b.h / 2 + thr / 3;
+    if (hh > 0.85 * ls || hh < 0.3 * ls) return;
+    const hd = {cx: b.cx, cy: b.cy, hw, hh, hollow: b.hole > 0.15 * b.n, st, core: b};
+    let up = 0, upx = 0, dn = 0, dnx = 0;
+    for (let x = Math.round(b.cx); x <= Math.round(b.cx + hw + 0.35 * ls); x++) { const r = vrun(x, b.cy, -1); if (r > up && thinStem(Math.round(b.cy), -1, r, b.h / 2)) { up = r; upx = x; } }
+    for (let x = Math.round(b.cx - hw - 0.35 * ls); x <= Math.round(b.cx); x++) { const r = vrun(x, b.cy, 1); if (r > dn && thinStem(Math.round(b.cy), 1, r, b.h / 2)) { dn = r; dnx = x; } }
+    if (up >= 2.0 * ls && up >= dn) { hd.stem = -1; hd.sx = upx; hd.sy = b.cy - up; }
+    else if (dn >= 2.0 * ls) { hd.stem = 1; hd.sx = dnx; hd.sy = b.cy + dn; }
+    heads.push(hd);
+  });
+  heads.forEach(hd => { hd.ok = !!hd.stem || (hd.hollow && hd.core.w >= 0.9 * ls && hd.core.w >= 1.3 * hd.core.h && hd.hh < 0.75 * ls); });
+  for (let it = 0, ch = true; it < 6 && ch; it++) { ch = false;
+    heads.forEach(a => { if (a.ok) return; for (const b of heads) { if (!b.ok || !b.stem || b.st !== a.st) continue;
+      const dx = Math.abs(a.cx - b.cx), dy = Math.abs(a.cy - b.cy);
+      if (dy <= 1.2 * ls && (dx <= 0.45 * ls || (dx <= 1.6 * ls && dy <= 0.7 * ls)) && a.hollow === b.hollow) { a.ok = true; a.stem = b.stem; a.sx = b.sx; a.sy = b.sy; a.chordOf = b; ch = true; break; } } }); }
+  let H2 = heads.filter(h => h.ok);
+  // Doppelte entfernen
+  H2.sort((a, b) => a.cx - b.cx);
+  H2 = H2.filter((a, i) => !H2.some((b, j) => j < i && Math.abs(a.cx - b.cx) < 0.4 * ls && Math.abs(a.cy - b.cy) < 0.35 * ls));
+
+  /* ---------- Tonart (Vorzeichen am Zeilenanfang über ihre senkrechten Striche) ---------- */
+  staves.forEach(st => {
+    const fh = H2.filter(h => h.st === st).reduce((m, h) => Math.min(m, h.cx - h.hw), st.xR);
+    const top = st.ly(0, st.hdr), bot = st.ly(4, st.hdr);
+    const sk = strokesIn(st.hdr, Math.min(fh - 0.6 * ls, st.hdr + 9 * ls), top - 2 * ls, bot + 1.2 * ls, 1.9 * ls).filter(k => k.len <= 3.7 * ls);
+    let last = st.hdr - 0.4 * ls; const seq = [];
+    for (const k of sk) { if (k.x - last > (seq.length ? 1.7 : 2.4) * ls) break; seq.push(k); last = k.x; }
+    let sharps = 0, flats = 0;
+    for (let i = 0; i < seq.length; i++) {
+      const a = seq[i], b = seq[i + 1];
+      if (b && b.x - a.x < 0.75 * ls && Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) > 0.6 * Math.min(a.len, b.len)) { sharps++; i++; }
+      else flats++;
+    }
+    st.key = sharps > flats ? Math.min(7, sharps) : -Math.min(7, flats);
+    st.keyEnd = seq.length ? seq[seq.length - 1].x + 0.8 * ls : st.hdr;
+    // Taktangabe (zwei Ziffern übereinander) direkt danach überspringen
+    { const t0 = st.ly(0, st.keyEnd), t2 = st.ly(2, st.keyEnd), t4 = st.ly(4, st.keyEnd);
+      const cs = comps(st.keyEnd - 0.3 * ls, st.keyEnd + 3.2 * ls, t0 - 0.3 * ls, t4 + 0.3 * ls, N).filter(c => c.h >= 1.3 * ls && c.h <= 2.6 * ls && c.w >= 0.7 * ls && c.w <= 2 * ls);
+      const up = cs.find(c => Math.abs((c.y0 + c.y1) / 2 - (t0 + t2) / 2) < 0.5 * ls), lo = cs.find(c => Math.abs((c.y0 + c.y1) / 2 - (t2 + t4) / 2) < 0.5 * ls);
+      if (up && lo && Math.abs((up.x0 + up.x1) / 2 - (lo.x0 + lo.x1) / 2) < 0.8 * ls) st.keyEnd = Math.max(up.x1, lo.x1) + 0.3 * ls;
+      else { const one = comps(st.keyEnd - 0.3 * ls, st.keyEnd + 3.2 * ls, t0 - 0.5 * ls, t4 + 0.5 * ls, N).find(c => c.h >= 2.4 * ls && c.h <= 4.6 * ls && c.w >= 0.7 * ls && c.w <= 2.2 * ls && Math.abs((c.y0 + c.y1) / 2 - t2) < 0.6 * ls && c.x0 < st.keyEnd + 1.2 * ls);
+        if (one && !H2.some(h => h.st === st && h.stem && h.cx > one.x0 && h.cx < one.x1)) st.keyEnd = one.x1 + 0.3 * ls; } }
+    // Köpfe außerhalb der Zeile brauchen eine Hilfslinie
+    H2 = H2.filter(h => {
+      if (h.st !== st || (h.stem && !h.chordOf)) return true;
+      const sp = st.sp(h.cx), pos = Math.round((st.ly(4, h.cx) - h.cy) / (sp / 2));
+      if (pos >= -1 && pos <= 9 || opt.noLedger) return true;
+      const ly = Math.round(pos >= 10 ? st.ly(0, h.cx) - sp : st.ly(4, h.cx) + sp);
+      const side = (xa, xb) => { let n = 0, k = 0; for (let x = Math.round(xa); x <= Math.round(xb); x++) { k++; if (nat(x, ly) || nat(x, ly - 1) || nat(x, ly + 1)) n++; } return k ? n / k : 0; };
+      return side(h.cx - h.hw - 0.3 * ls, h.cx - h.hw + 0.1 * ls) > 0.6 || side(h.cx + h.hw - 0.1 * ls, h.cx + h.hw + 0.3 * ls) > 0.6;
+    });
+  });
+  {                                                 // Mehrheitsentscheid auf der Seite (Tonart ändert sich selten)
+    const cnt = {}; staves.forEach(st => cnt[st.key] = (cnt[st.key] || 0) + 1);
+    const best = +Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a] || Math.abs(b) - Math.abs(a))[0];
+    staves.forEach(st => { if (cnt[st.key] < cnt[best] * 0.6 || st.key === 0) st.key = best; });
+    systems.forEach(sy => { const k = sy[0].key; if (sy.every(s2 => s2.key === k)) return; sy.forEach(s2 => s2.key = best); });
+  }
+  systems.forEach(sy => { if (sy.length === 2 && sy[0].clef === 'F' && sy[1].clef === 'F') sy[0].clef = 'G'; });
+  H2 = H2.filter(h => h.cx > h.st.keyEnd);
+
+  /* ---------- 10. Taktstriche ---------- */
+  systems.forEach(sy => {
+    const bars = [];
+    sy.forEach((st, si) => {
+      const xs = [];
+      for (let x = Math.round(st.keyEnd); x <= st.xR + 1; x++) {
+        const t = st.ly(0, x), b = st.ly(4, x); let ok = 0, n = 0;
+        for (let y = Math.round(t); y <= Math.round(b); y++) { n++; if (at(x, y)) ok++; }
+        if (ok < n * 0.97) continue;
+        if (H2.some(h => h.st === st && Math.abs(h.cx - x) < h.hw + 0.5 * ls && h.cy > t - 4 * ls && h.cy < b + 4 * ls)) continue;
+        if (at(x, Math.round(t - 0.6 * ls)) && at(x, Math.round(t - 1.6 * ls)) && si === 0 && !at(x, Math.round(b + 0.6 * ls))) continue;  // Hals nach oben aus der Zeile
+        xs.push(x);
+      }
+      const groups = []; xs.forEach(x => { const g = groups[groups.length - 1]; if (g && x - g.x1 <= 1) g.x1 = x; else groups.push({x0: x, x1: x}); });
+      groups.forEach(g => { g.w = g.x1 - g.x0 + 1; g.si = si; });
+      bars.push(groups.filter(g => g.w <= 1.1 * ls));
+    });
+    // Taktstriche des Systems: in allen Zeilen vorhanden (±0.5 ls) oder deutlich in einer Zeile
+    let base = bars[0] || [];
+    if (sy.length > 1) base = base.filter(g => bars.slice(1).every(bb => bb.some(o => Math.abs(o.x0 - g.x0) < 0.6 * ls)));
+    const merged = []; base.forEach(g => { const m = merged[merged.length - 1]; if (m && g.x0 - m.x1 < 0.9 * ls) { m.x1 = g.x1; m.parts.push(g); } else merged.push({x0: g.x0, x1: g.x1, parts: [g]}); });
+    const st0 = sy[0];
+    merged.forEach(m => {
+      m.x = (m.x0 + m.x1) / 2; m.thick = m.parts.some(p => p.w > 0.35 * ls);
+      const isDot = (x, y) => { x = Math.round(x); y = Math.round(y); let a = 0; for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++) a += nat(x + dx, y + dy);
+        if (a < 12) return false; const r = Math.round(0.5 * ls); let ring = 0; for (let k = 0; k < 12; k++) { const t = k * Math.PI / 6; ring += nat(x + Math.round(r * Math.cos(t)), y + Math.round(r * Math.sin(t))); } return ring <= 1; };
+      const dotAt = (x) => { const xs = [x - 0.25 * ls, x, x + 0.25 * ls]; return xs.some(xx => isDot(xx, st0.ly(1, xx) + st0.sp(xx) / 2)) && xs.some(xx => isDot(xx, st0.ly(2, xx) + st0.sp(xx) / 2)); };
+      m.repEnd = dotAt(m.x0 - 0.75 * ls); m.repStart = dotAt(m.x1 + 0.75 * ls);
+    });
+    sy.bars = merged.filter(m => m.x > st0.keyEnd + 1.5 * ls || m.repStart);
+  });
+
+  /* ---------- 11. Tonhöhe, Vorzeichen, Dauer ---------- */
+  const LETTER = [0, 2, 4, 5, 7, 9, 11];
+  const KEYS = {sharp: [3, 0, 4, 1, 5, 2, 6], flat: [6, 2, 5, 1, 4, 0, 3]};   // F C G D A E H bzw. B E A D G C F (Index in C D E F G A B)
+  const out = [];
+  systems.forEach((sy, syi) => {
+    const sh = sy.length > 2 ? sy.slice(-2) : sy;
+    H2.filter(h => sy.includes(h.st)).forEach(h => {
+      const st = h.st, sp = st.sp(h.cx);
+      const pos = Math.round((st.ly(4, h.cx) - h.cy) / (sp / 2));
+      const base = st.clef === 'F' ? 2 * 7 + 4 : st.clef === 'C' ? 3 * 7 + 1 : 4 * 7 + 2;   // F: G2, C: Alt-Schlüssel D3? (Altschlüssel: Unterste Linie F3)
+      const dia = (st.clef === 'C' ? 3 * 7 + 3 : base) + pos;
+      const oct = Math.floor(dia / 7), li = ((dia % 7) + 7) % 7;
+      let alt = 0; if (st.key > 0 && KEYS.sharp.slice(0, st.key).includes(li)) alt = 1; if (st.key < 0 && KEYS.flat.slice(0, -st.key).includes(li)) alt = -1;
+      // Versetzungszeichen links vom Kopf
+      let acc = null;
+      {
+        const xr = h.cx - h.hw - 0.05 * ls;
+        let sk = strokesIn(h.cx - h.hw - 2.3 * ls, xr, h.cy - 2.6 * ls, h.cy + 2.6 * ls, 1.3 * ls).filter(k => k.len <= 3.8 * ls &&
+          !H2.some(o => o !== h && o.stem && Math.abs(o.sx - k.x) <= 0.2 * ls && Math.abs(o.cy - h.cy) < 4 * ls) &&
+          !H2.some(o => o !== h && Math.abs(o.cx - k.x) < o.hw && Math.abs(o.cy - (k.y0 + k.y1) / 2) < 1.6 * ls));
+        sk = sk.filter(k => k.x > xr - 1.9 * ls);
+        const r = sk[sk.length - 1], l = sk[sk.length - 2];
+        if (r && l && r.x - l.x < 0.8 * ls) {
+          const ov = Math.min(r.y1, l.y1) - Math.max(r.y0, l.y0);
+          if (l.y0 < r.y0 - 0.4 * ls && r.y1 > l.y1 + 0.4 * ls && l.y0 < h.cy && r.y1 > h.cy) acc = 'natural';
+          else if (ov > 0.6 * Math.min(r.len, l.len) && Math.abs((r.y0 + r.y1 + l.y0 + l.y1) / 4 - h.cy) < 0.6 * ls) acc = 'sharp';
+        } else if (r && xr - r.x > 0.35 * ls && r.y1 > h.cy + 0.05 * ls && r.y1 < h.cy + 0.95 * ls && r.y0 < h.cy - 1.1 * ls) {
+          let blk = 0; for (let x = Math.round(r.x + 0.2 * ls); x <= Math.round(r.x + 0.6 * ls); x++) for (let y = Math.round(h.cy - 0.2 * ls); y <= Math.round(r.y1); y++) blk += nat(x, y);
+          if (blk > 0.08 * ls * ls) acc = 'flat';
+        }
+      }
+      const tipDir = h.stem || 0; let beams = 0;
+      if (h.stem && !h.hollow) {
+        // Balken / Fähnchen am Halsende zählen
+        for (const side of [-1, 1]) {
+          const x = Math.round(h.sx + side * 0.45 * ls); let n = 0, inR = false, y = Math.round(h.sy) - tipDir * Math.round(0.3 * ls);
+          const yEnd = Math.round(h.sy - tipDir * (-2.6 * ls)); let runLen = 0;
+          for (let k = 0; k < 2.6 * ls; k++, y -= tipDir) { const v = nat(x, y);
+            if (v) { runLen++; if (!inR) { inR = true; } } else { if (inR && runLen >= 0.25 * ls) n++; inR = false; runLen = 0; } }
+          if (inR && runLen >= 0.25 * ls) n++;
+          beams = Math.max(beams, Math.min(n, 4));
+        }
+      }
+      let dur = h.hollow ? (h.stem ? 2 : 4) : Math.pow(2, -beams);
+      // Punkt rechts
+      let dot = false;
+      { const dyc = (pos % 2 === 0) ? -sp / 2 : 0; const yy = h.cy + dyc;
+        const cs2 = comps(h.cx + h.hw + 0.05 * ls, h.cx + h.hw + 1.3 * ls, yy - 0.6 * ls, yy + 0.6 * ls, N);
+        dot = cs2.some(c => c.w <= 0.65 * ls && c.h <= 0.65 * ls && c.w >= 0.2 * ls && c.h >= 0.2 * ls && c.n > 0.5 * c.w * c.h && Math.abs((c.y0 + c.y1) / 2 - yy) < 0.4 * ls && (!h.stem || h.stem === 1 || c.x0 > h.sx + 1)); }
+      if (dot) dur *= 1.5;
+      const o = toOrig(h.cx, h.cy);
+      out.push({sys: syi, staff: sh.indexOf(st), x: h.cx, y: h.cy, ox: o[0], oy: o[1], r: h.hw / s, pos, clef: st.clef, key: st.key,
+        step: li, oct, alt, acc, dur,  hollow: h.hollow, stem: h.stem || 0, beams, dot, sx: h.sx});
+    });
+  });
+
+  return {
+    ls, lt, W, H, s, ang, w, h, toOrig, toWork, B: opt.keepImg ? B : null, N: opt.keepImg ? N : null,
+    staves: staves.map(st => ({xL: st.xL, xR: st.xR, clef: st.clef, key: st.key, keyEnd: st.keyEnd, lines: [0, 1, 2, 3, 4].map(k => { const a = []; for (let x = st.xL; x <= st.xR; x += Math.round(2 * ls)) a.push([x, st.ly(k, x)]); a.push([st.xR, st.ly(k, st.xR)]); return a; })})),
+    systems: systems.map(sy => ({staves: sy.map(st => staves.indexOf(st)), bars: (sy.bars || []).map(b => ({x: b.x, thick: b.thick, repStart: b.repStart, repEnd: b.repEnd}))})),
+    notes: out
+  };
+}
+
+
+/* ---------- Seiten zu einem Stück zusammensetzen ---------- */
+const OMR_LETTER = [0, 2, 4, 5, 7, 9, 11];
+// erzeugt aus den Seitenergebnissen eine bearbeitbare Ereignisliste (Noten mit MIDI-Tonhöhe, Dauer, Position)
+function omrEvents(pages) {
+  const ev = []; let id = 0;
+  pages.forEach((r, pi) => {
+    if (!r || r.error) return;
+    r.systems.forEach((sy, syi) => {
+      const bars = sy.bars.map(b => b.x).sort((a, b) => a - b);
+      const mOf = x => { let m = 0; while (m < bars.length && bars[m] < x) m++; return m; };
+      const ns = r.notes.filter(n => n.sys === syi).sort((a, b) => a.x - b.x);
+      const accs = {};
+      ns.forEach(n => {
+        const m = mOf(n.x), k = n.staff + ':' + m + ':' + n.step + ':' + n.oct;
+        let alt = n.alt;
+        if (n.acc) { alt = n.acc === 'sharp' ? 1 : n.acc === 'flat' ? -1 : 0; accs[k] = alt; } else if (k in accs) alt = accs[k];
+        ev.push({id: ++id, page: pi, sys: syi, staff: n.staff, x: n.x, ox: n.ox, oy: n.oy, r: n.r, m, midi: 12 * (n.oct + 1) + OMR_LETTER[n.step] + alt,
+          dur: n.dur, stem: n.stem, sx: n.sx, ls: r.ls, key: n.key, clef: n.clef, step: n.step, oct: n.oct, acc: n.acc});
+      });
+    });
+  });
+  return ev;
+}
+// Zeitachse: je Notenzeile Dauern aufsummieren, auf die Taktlänge bringen, gleiche x-Position beider Hände gleichzeitig setzen
+function omrTimeline(ev, pages, forceMl) {
+  const meas = [];
+  const groups = {};
+  ev.forEach(e => { const k = e.page + ':' + e.sys; (groups[k] = groups[k] || []).push(e); });
+  const keys = Object.keys(groups).sort((a, b) => { const [p1, s1] = a.split(':').map(Number), [p2, s2] = b.split(':').map(Number); return p1 - p2 || s1 - s2; });
+  keys.forEach(k => {
+    const [pi, syi] = k.split(':').map(Number), r = pages[pi], sy = r && r.systems[syi];
+    const list = groups[k], ls = list[0].ls;
+    const bar = sy ? sy.bars.slice().sort((a, b) => a.x - b.x) : [];
+    const byM = {}; list.forEach(e => (byM[e.m] = byM[e.m] || []).push(e));
+    for (let m = 0; m <= bar.length; m++) {
+      const L = byM[m];
+      const startRep = m > 0 && bar[m - 1] && bar[m - 1].repStart, endRep = bar[m] && bar[m].repEnd;
+      if (!L || !L.length) { if (meas.length && endRep && meas[meas.length - 1].page === pi) meas[meas.length - 1].repEnd = true; continue; }
+      const chords = [];
+      [0, 1].forEach(st => {
+        L.filter(e => e.staff === st).sort((a, b) => a.x - b.x).forEach(e => {
+          const c = chords.find(c => c.staff === st && (Math.abs(c.x - e.x) < 0.45 * ls || (e.stem && c.stem === e.stem && Math.abs(c.sx - e.sx) < 0.3 * ls && Math.abs(c.x - e.x) < 1.6 * ls)));
+          if (c) { c.ev.push(e); c.dur = Math.min(c.dur, e.dur); } else chords.push({staff: st, x: e.x, sx: e.sx, stem: e.stem, ev: [e], dur: e.dur});
+        });
+      });
+      chords.forEach(c => { const main = c.ev.filter(e => !c.stem || (c.stem < 0 ? e.x < c.sx : e.x > c.sx)); const xs = (main.length ? main : c.ev).map(e => e.x).sort((a, b) => a - b); c.x = xs[xs.length >> 1]; });
+      const tot = [0, 1].map(st => { let t = 0; chords.filter(c => c.staff === st).sort((a, b) => a.x - b.x).forEach(c => { c.rt = t; t += c.dur; }); return t; });
+      meas.push({chords, tot, ls, repStart: !!startRep, repEnd: !!endRep, page: pi, sys: syi});
+    }
+  });
+  const q4 = v => Math.round(v * 4) / 4;
+  const lens = {}; meas.forEach(m => { const T = q4(Math.max(m.tot[0], m.tot[1])); if (T > 0) lens[T] = (lens[T] || 0) + 1; });
+  let ml = 4, bc = 0; Object.keys(lens).forEach(T => { if (lens[T] > bc || (lens[T] === bc && +T > ml)) { bc = lens[T]; ml = +T; } });
+  if (forceMl) ml = forceMl;
+  meas.ml = ml;
+  meas.forEach((m, mi) => {
+    const pickup = mi === 0 && Math.max(m.tot[0], m.tot[1]) < ml - 0.01;
+    [0, 1].forEach(st => {
+      const T = m.tot[st]; if (!T || pickup) return;
+      const f = ml / T; if (Math.abs(f - 1) < 0.01) return;
+      m.chords.filter(c => c.staff === st).forEach(c => { c.rt *= f; c.dur *= f; });
+    });
+    // gleiche x-Position in beiden Notenzeilen = gleichzeitig
+    const top = m.chords.filter(c => c.staff === 0), bot = m.chords.filter(c => c.staff === 1);
+    top.forEach(a => { const b = bot.find(b => Math.abs(b.x - a.x) < 0.8 * m.ls); if (b) { const t = q4((a.rt + b.rt) / 2); a.rt = b.rt = t; } });
+    m.chords.forEach(c => { c.rt = q4(c.rt); c.dur = Math.max(0.25, q4(c.dur)); });
+    [0, 1].forEach(st => { let last = -1; m.chords.filter(c => c.staff === st).sort((a, b) => a.x - b.x).forEach(c => { if (c.rt <= last) c.rt = last + 0.25; last = c.rt; }); });
+    m.len = pickup ? q4(Math.max(m.tot[0], m.tot[1])) || 0.25 : ml;
+    m.chords.forEach(c => { if (c.rt >= m.len) m.len = c.rt + 0.25; });
+  });
+  let t = 0; meas.forEach(m => { m.t0 = t; m.chords.forEach(c => c.ev.forEach(e => { e.t = t + c.rt; })); t += m.len; });
+  return meas;
+}
+const OMR_TS = {'2/4': [2, 4, 2], '3/4': [3, 4, 3], '4/4': [4, 4, 4], '2/2': [2, 2, 4], '3/8': [3, 8, 1.5], '6/8': [6, 8, 3], '9/8': [9, 8, 4.5], '12/8': [12, 8, 6]};
+function omrMusicXML(title, ev, pages, o) {
+  o = o || {};
+  const fts = OMR_TS[o.ts];
+  const meas = omrTimeline(ev, pages, fts ? fts[2] : 0), DIV = 8;
+  const q = v => Math.max(1, Math.round(v * DIV));
+  const ml = meas.ml || 4;
+  const ts = fts ? fts.slice(0, 2) : ml === 3 ? [3, 4] : ml === 2 ? [2, 4] : ml === 1.5 ? [3, 8] : ml === 6 ? [6, 4] : ml === 2.5 ? [5, 8] : ml === 1 ? [1, 4] : [4, 4];
+  const first = ev[0] || {key: 0};
+  const key = o.key !== undefined && o.key !== null ? o.key : (first.key || 0), flats = key < 0;
+  const clefs = [0, 1].map(st => { const e = ev.find(x => x.staff === st); return e ? e.clef : st ? 'F' : 'G'; });
+  const twoStaves = ev.some(e => e.staff === 1);
+  const NAMES_S = [['C', 0], ['C', 1], ['D', 0], ['D', 1], ['E', 0], ['F', 0], ['F', 1], ['G', 0], ['G', 1], ['A', 0], ['A', 1], ['B', 0]];
+  const NAMES_F = [['C', 0], ['D', -1], ['D', 0], ['E', -1], ['E', 0], ['F', 0], ['G', -1], ['G', 0], ['A', -1], ['A', 0], ['B', -1], ['B', 0]];
+  const TYPES = [[32, 'whole', 0], [24, 'half', 1], [16, 'half', 0], [12, 'quarter', 1], [8, 'quarter', 0], [6, 'eighth', 1], [4, 'eighth', 0], [3, '16th', 1], [2, '16th', 0], [1, '32nd', 0]];
+  const typeOf = d => TYPES.find(x => x[0] <= d) || TYPES[TYPES.length - 1];
+  const split = d => { const r = []; while (d > 0) { const tp = typeOf(d); r.push(tp); d -= tp[0]; } return r; };
+  const pitchXML = midi => { const pc = ((midi % 12) + 12) % 12, oct = Math.floor(midi / 12) - 1, nm = (flats ? NAMES_F : NAMES_S)[pc];
+    return '<pitch><step>' + nm[0] + '</step>' + (nm[1] ? '<alter>' + nm[1] + '</alter>' : '') + '<octave>' + oct + '</octave></pitch>'; };
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  let x = '<?xml version="1.0" encoding="UTF-8"?>\n<score-partwise version="3.1"><work><work-title>' + esc(title) + '</work-title></work><part-list><score-part id="P1"><part-name>Klavier</part-name></score-part></part-list><part id="P1">';
+  meas.forEach((m, mi) => {
+    const len = q(m.len);
+    x += '<measure number="' + (mi + 1) + '">';
+    if (m.repStart) x += '<barline location="left"><bar-style>heavy-light</bar-style><repeat direction="forward"/></barline>';
+    if (mi === 0) x += '<attributes><divisions>' + DIV + '</divisions><key><fifths>' + key + '</fifths></key><time><beats>' + ts[0] + '</beats><beat-type>' + ts[1] + '</beat-type></time>' + (twoStaves ? '<staves>2</staves>' : '') +
+      clefs.slice(0, twoStaves ? 2 : 1).map((c, i) => '<clef number="' + (i + 1) + '"><sign>' + c + '</sign><line>' + (c === 'F' ? 4 : c === 'C' ? 3 : 2) + '</line></clef>').join('') + '</attributes>';
+    else if (m.page !== meas[mi - 1].page || m.sys !== meas[mi - 1].sys) x += '<print new-system="yes"/>';
+    (twoStaves ? [0, 1] : [0]).forEach(st => {
+      if (st === 1) x += '<backup><duration>' + len + '</duration></backup>';
+      const ch = m.chords.filter(c => c.staff === st).sort((a, b) => a.rt - b.rt);
+      let cur = 0;
+      const rest = d => { split(d).forEach(tp => { x += '<note><rest/><duration>' + tp[0] + '</duration><voice>' + (st + 1) + '</voice><type>' + tp[1] + '</type>' + (tp[2] ? '<dot/>' : '') + (twoStaves ? '<staff>' + (st + 1) + '</staff>' : '') + '</note>'; }); };
+      ch.forEach((c, i) => {
+        const start = Math.round(c.rt * DIV);
+        if (start < cur) return;               // überlappt (zweite Stimme): auslassen in dieser Stimme
+        if (start > cur) rest(start - cur);
+        const next = ch[i + 1] ? Math.round(ch[i + 1].rt * DIV) : len;
+        let d = Math.min(q(c.dur), Math.max(1, next - start)); if (start + d > len) d = Math.max(1, len - start);
+        const tp = typeOf(d);
+        const evs = c.ev.slice().sort((a, b) => a.midi - b.midi);
+        evs.forEach((e, k) => { x += '<note>' + (k ? '<chord/>' : '') + pitchXML(e.midi) + '<duration>' + d + '</duration><voice>' + (st + 1) + '</voice><type>' + tp[1] + '</type>' + (tp[2] && tp[0] === d ? '<dot/>' : '') + (twoStaves ? '<staff>' + (st + 1) + '</staff>' : '') + '</note>'; });
+        cur = start + d;
+      });
+      if (cur < len) rest(len - cur);
+    });
+    if (m.repEnd) x += '<barline location="right"><bar-style>light-heavy</bar-style><repeat direction="backward"/></barline>';
+    x += '</measure>';
+  });
+  x += '</part></score-partwise>';
+  return {xml: x, measures: meas.length, ts};
+}
+function omrApplyKey(ev, key) {                   // Tonart neu anwenden (manuell geänderte Töne bleiben)
+  const SH = [3, 0, 4, 1, 5, 2, 6], FL = [6, 2, 5, 1, 4, 0, 3];
+  const keyAlt = st => key > 0 && SH.slice(0, key).includes(st) ? 1 : key < 0 && FL.slice(0, -key).includes(st) ? -1 : 0;
+  const acc = {};
+  ev.slice().sort((a, b) => a.page - b.page || a.sys - b.sys || a.x - b.x).forEach(e => {
+    e.key = key;
+    if (e.fixed || e.step === undefined || e.step === null) return;
+    const k = e.page + ':' + e.sys + ':' + e.m + ':' + e.staff + ':' + e.step + ':' + e.oct;
+    let alt = keyAlt(e.step);
+    if (e.acc) { alt = e.acc === 'sharp' ? 1 : e.acc === 'flat' ? -1 : 0; acc[k] = alt; } else if (k in acc) alt = acc[k];
+    e.midi = 12 * (e.oct + 1) + OMR_LETTER[e.step] + alt;
+  });
+}
+
+
+/* ---------- Notenerkennung in der App: Worker, Seitenbilder ---------- */
+let omrWorker = null;
+function omrXf(r){
+  const ca = Math.cos(r.ang), sa = Math.sin(r.ang), cxo = r.w / 2, cyo = r.h / 2, cxn = r.W / 2, cyn = r.H / 2, s = r.s;
+  r.toOrig = (X, Y) => { const u = (X - cxn) / s, v = (Y - cyn) / s; return [cxo + u * ca - v * sa, cyo + u * sa + v * ca]; };
+  r.toWork = (x, y) => { const u = x - cxo, v = y - cyo; return [cxn + (u * ca + v * sa) * s, cyn + (-u * sa + v * ca) * s]; };
+  return r;
+}
+const omrLite = r => r.error ? {error: r.error, w: r.w, h: r.h} : {w: r.w, h: r.h, W: r.W, H: r.H, s: r.s, ang: r.ang, ls: r.ls, staves: r.staves, systems: r.systems};
+function omrRun(g, w, h){
+  const local = () => { const r = omrPage(g, w, h, {}); if (r) { delete r.toOrig; delete r.toWork; delete r.B; delete r.N; } return r; };
+  return new Promise((res) => {
+    let wk = null;
+    try {
+      if (!omrWorker) {
+        const src = 'const OMR_LETTER = ' + JSON.stringify(OMR_LETTER) + ';\nconst omrPage = ' + omrPage.toString() + ';\nonmessage = e => { const d = e.data; let r; try { r = omrPage(d.g, d.w, d.h, {}); if (r) { delete r.toOrig; delete r.toWork; delete r.B; delete r.N; } } catch (err) { r = {error: String(err && err.message || err)}; } postMessage({id: d.id, r}); };';
+        omrWorker = new Worker(URL.createObjectURL(new Blob([src], {type: 'text/javascript'})));
+      }
+      wk = omrWorker;
+    } catch (err) { omrWorker = null; }
+    if (!wk) { setTimeout(() => { try { res(local()); } catch (err) { res({error: err.message}); } }, 30); return; }
+    const id = Math.random();
+    const on = e => { if (e.data.id !== id) return; wk.removeEventListener('message', on); res(e.data.r); };
+    wk.addEventListener('message', on);
+    wk.onerror = ev => { ev.preventDefault && ev.preventDefault(); wk.removeEventListener('message', on); omrWorker = null; try { res(local()); } catch (err) { res({error: err.message}); } };
+    wk.postMessage({id, g, w, h});
+  });
+}
+async function pageGray(url, maxSide){
+  const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error(t('Dieses Bild kann der Browser nicht öffnen.'))); i.src = url; });
+  const k = Math.min(1, maxSide / Math.max(im.naturalWidth, im.naturalHeight));
+  const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+  const x = c.getContext('2d', {willReadFrequently: true}); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+  const d = x.getImageData(0, 0, c.width, c.height).data, g = new Uint8Array(c.width * c.height);
+  for (let i = 0, j = 0; j < g.length; i += 4, j++) g[j] = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
+  return {g, w: c.width, h: c.height};
+}
+async function recognizeRecord(rec){
+  const pages = [], n = rec.pages.length;
+  for (let i = 0; i < n; i++) {
+    showBanner(t('Noten werden erkannt … Seite {i} von {n}', {i: i + 1, n}));
+    let r;
+    try { const P = await pageGray(rec.pages[i], 2400); r = await omrRun(P.g, P.w, P.h); if (r && r.error) r.w = r.w || P.w, r.h = r.h || P.h; }
+    catch (err) { r = {error: err.message || 'x', w: 1000, h: 1400}; }
+    pages.push(r && !r.error ? omrXf(r) : (r || {error: 'x'}));
+  }
+  $('#banner').hidden = true;
+  const ev = omrEvents(pages);
+  const keys = {}; ev.forEach(e => { keys[e.key] = (keys[e.key] || 0) + 1; });
+  const key = ev.length ? +Object.keys(keys).sort((a, b) => keys[b] - keys[a])[0] : 0;
+  return {pages, ev, key, ts: 'auto'};
+}
+// Erkennung speichern: Scan wird zum spielbaren Song (MusicXML), Bilder und Erkennungsdaten bleiben erhalten
+async function omrStore(rec, st){
+  rec.omr = {v: 1, pages: st.pages.map(omrLite), ev: st.ev.map(e => { const o = Object.assign({}, e); delete o.t; return o; }), key: st.key, ts: st.ts};
+  rec.mod = Date.now();
+  if (st.ev.length) {
+    rec.format = 'xml'; rec.data = omrMusicXML(rec.title, st.ev, st.pages, {key: st.key, ts: st.ts}).xml;
+    try { const song = songFromRecord(rec); Object.assign(rec, {dur: song.dur, hands: song.hands, count: song.notes.length}); if (!rec.diff) rec.diff = songDiff(song); } catch (err) {}
+  }
+  const ok = await DB.put(rec); baseCache.delete(rec.id);
+  return ok;
+}
+let omrBusy = false;
+async function startRecognition(id){
+  if (omrBusy) { showBanner(t('Die Erkennung läuft bereits.'), 3000); return; }
+  const rec = await DB.get(id); if (!rec || !rec.pages || !rec.pages.length) return;
+  stopPreview();
+  omrBusy = true; let st;
+  try { st = await recognizeRecord(rec); } finally { omrBusy = false; }
+  if (!st.ev.length) {
+    showBanner(t('Auf diesen Seiten wurden keine Noten erkannt. Tipp: Seite gerade und bildfüllend fotografieren, gutes Licht, keine Schatten. Handschrift wird nicht erkannt.'), 9000);
+    return;
+  }
+  await omrStore(rec, st);
+  const here = !$('#lib').hidden && !$('#detail').hidden && openEntry && openEntry.id === id;
+  await loadLibrary(); if (!$('#lib').hidden && $('#detail').hidden) renderLib();
+  if (here) openOmrEditor(rec, st);
+  else showBanner(t('Notenerkennung für „{t}“ ist fertig. Prüfen kannst du sie auf der Song-Seite mit „Erkennung bearbeiten“.', {t: esc(rec.title)}), 7000);
+}
+
+/* ---------- Korrektur-Editor ---------- */
+const OE = {rec: null, pages: [], ev: [], key: 0, ts: 'auto', page: 0, sel: null, zoom: 1, add: false, undo: [], timer: 0};
+const DUR_NAMES = {4: 'Ganze', 3: 'Halbe punktiert', 2: 'Halbe', 1.5: 'Viertel punktiert', 1: 'Viertel', 0.75: 'Achtel punktiert', 0.5: 'Achtel', 0.375: '16tel punktiert', 0.25: '16tel', 0.125: '32tel'};
+const FLAT_NAMES = {de: ['C','Des','D','Es','E','F','Ges','G','As','A','B','H'], en: ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'], es: ['Do','Re♭','Re','Mi♭','Mi','Fa','Sol♭','Sol','La♭','La','Si♭','Si']};
+const oeName = (p, acc) => OE.key < 0 && acc !== 'sharp' && acc !== 'natural' ? (FLAT_NAMES[LANG] || FLAT_NAMES.de)[p % 12] + (Math.floor(p / 12) - 1) : nm(p);
+const durName = d => t(DUR_NAMES[d] || '{d} Schläge', {d: String(d).replace('.', ',')});
+function openOmrEditor(rec, st){
+  if (!st) {
+    if (!rec.omr) return;
+    st = {pages: rec.omr.pages.map(p => p.error ? p : omrXf(Object.assign({}, p))), ev: rec.omr.ev.map(e => Object.assign({}, e)), key: rec.omr.key || 0, ts: rec.omr.ts || 'auto'};
+  }
+  Object.assign(OE, {rec, pages: st.pages, ev: st.ev, key: st.key, ts: st.ts, page: 0, sel: null, add: false, undo: []});
+  if (S.playing) togglePlay();
+  stopPreview();
+  $('#oeTitle').textContent = rec.title;
+  const ks = $('#oeKey'); ks.innerHTML = '';
+  for (let k = -7; k <= 7; k++) { const o = document.createElement('option'); o.value = k; o.textContent = k === 0 ? t('keine Vorzeichen') : Math.abs(k) + (k > 0 ? ' ♯' : ' ♭'); ks.append(o); }
+  ks.value = OE.key;
+  const ts = $('#oeTime'); ts.innerHTML = '<option value="auto">' + t('automatisch') + '</option>' + Object.keys(OMR_TS).map(k => '<option>' + k + '</option>').join(''); ts.value = OE.ts;
+  $('#oeAdd').setAttribute('aria-pressed', 'false');
+  $('#lib').hidden = true; $('#detail').hidden = true; closeSheets(); $('#omred').hidden = false;
+  if (!history.state || history.state.v !== 'omr') { try { history.pushState({v: 'omr'}, ''); } catch (err) {} }
+  oeShowPage();
+}
+function oeShowPage(){
+  const n = OE.rec.pages.length; OE.page = Math.max(0, Math.min(n - 1, OE.page));
+  const pg = OE.pages[OE.page] || {w: 1000, h: 1400};
+  $('#oeImg').src = OE.rec.pages[OE.page];
+  $('#oeSvg').setAttribute('viewBox', '0 0 ' + pg.w + ' ' + pg.h);
+  $('#oePage').textContent = t('Seite {i} von {n}', {i: OE.page + 1, n});
+  $('#oePrev').disabled = OE.page === 0; $('#oeNext').disabled = OE.page >= n - 1;
+  $('#oeWrap').style.width = (OE.zoom * 100) + '%';
+  oeDraw(); oeInfo();
+}
+function oeDraw(){
+  const svg = $('#oeSvg'), pg = OE.pages[OE.page] || {};
+  const fs = Math.max(9, (pg.ls ? pg.ls / pg.s : 14) * 0.95);
+  let h = '';
+  OE.ev.filter(e => e.page === OE.page).forEach(e => {
+    const r = Math.max(5, e.r || 7), sel = OE.sel === e;
+    const cls = 'mk ' + (e.staff ? 'lh' : 'rh') + (e.fixed || e.added ? ' fx' : '') + (sel ? ' sel' : '');
+    h += '<g class="' + cls + '"><circle cx="' + e.ox.toFixed(1) + '" cy="' + e.oy.toFixed(1) + '" r="' + (r * 1.15).toFixed(1) + '"/>' +
+      '<text x="' + (e.ox + r * 1.2).toFixed(1) + '" y="' + (e.oy - r * 0.9).toFixed(1) + '" font-size="' + fs.toFixed(1) + '">' + esc(oeName(e.midi, e.fixed ? null : e.acc)) + '</text></g>';
+  });
+  if (pg.error) h += '<text x="20" y="40" font-size="28" class="oeerr">' + esc(t('Auf dieser Seite wurden keine Notenzeilen gefunden.')) + '</text>';
+  svg.innerHTML = h;
+}
+function oeInfo(){
+  const e = OE.sel, b = $('#oeInfo');
+  ['oeUp', 'oeDown', 'oeDot', 'oeHand', 'oeDel'].forEach(id => { $('#' + id).disabled = !e; });
+  document.querySelectorAll('#oeDur button').forEach(x => { x.disabled = !e; x.setAttribute('aria-pressed', String(!!e && (+x.dataset.d === e.dur || +x.dataset.d * 1.5 === e.dur))); });
+  $('#oeDot').setAttribute('aria-pressed', String(!!e && [3, 1.5, 0.75, 0.375].includes(e.dur)));
+  if (OE.add) { b.textContent = t('Tippe in den Noten auf die Stelle, an der eine Note fehlt.'); return; }
+  if (!e) { b.textContent = OE.ev.length ? t('{n} Noten erkannt. Tippe eine Note an, um sie zu prüfen. Am Klavier gedrückte Tasten korrigieren die gewählte Note.', {n: OE.ev.length}) : t('Keine Noten erkannt.'); return; }
+  $('#oeHand').textContent = e.staff ? t('Hand: links') : t('Hand: rechts');
+  b.innerHTML = '<b>' + esc(oeName(e.midi, e.fixed ? null : e.acc)) + '</b> · ' + esc(durName(e.dur)) + ' · ' + esc(e.staff ? t('linke Hand') : t('rechte Hand'));
+}
+function oeOrder(){ return OE.ev.slice().sort((a, b) => a.page - b.page || a.sys - b.sys || a.x - b.x || a.staff - b.staff || b.midi - a.midi); }
+function oeSelect(e, sound){
+  OE.sel = e || null;
+  if (e && e.page !== OE.page) { OE.page = e.page; oeShowPage(); } else { oeDraw(); oeInfo(); }
+  if (e && sound) synth(e.midi, 0.45, 0.5);
+  if (e) { const c = document.querySelector('#oeSvg .sel circle'); if (c && c.scrollIntoView) c.scrollIntoView({block: 'nearest', inline: 'nearest'}); }
+}
+function oeStep(d){
+  const o = oeOrder(); if (!o.length) return;
+  const i = OE.sel ? o.indexOf(OE.sel) : (d > 0 ? -1 : o.length);
+  oeSelect(o[Math.max(0, Math.min(o.length - 1, i + d))], true);
+}
+function oeSnap(){ OE.undo.push(JSON.stringify({ev: OE.ev, key: OE.key, ts: OE.ts})); if (OE.undo.length > 40) OE.undo.shift(); }
+function oeChanged(){ oeDraw(); oeInfo(); clearTimeout(OE.timer); OE.timer = setTimeout(oeSave, 700); }
+async function oeSave(){ clearTimeout(OE.timer); if (!OE.rec) return; await omrStore(OE.rec, OE); }
+function chordMates(e){
+  return OE.ev.filter(o => o === e || (o.page === e.page && o.sys === e.sys && o.staff === e.staff && (Math.abs(o.x - e.x) < 0.45 * e.ls || (e.stem && o.stem === e.stem && Math.abs(o.sx - e.sx) < 0.3 * e.ls && Math.abs(o.x - e.x) < 1.6 * e.ls))));
+}
+function oeSetPitch(p, advance){
+  const e = OE.sel; if (!e) return;
+  oeSnap(); e.midi = p; e.fixed = true; oeChanged();
+  if (advance) oeStep(1);
+}
+function omrKey(p){ if (OE.sel && !OE.add) { oeSetPitch(p, true); return true; } return false; }
+function oeAddAt(px, py){
+  const pg = OE.pages[OE.page]; if (!pg || pg.error || !pg.toWork) return;
+  const [X, Y] = pg.toWork(px, py), ls = pg.ls;
+  const lineY = (st, k, x) => { const L = st.lines[k]; let i = 0; while (i < L.length - 2 && L[i + 1][0] < x) i++; const a = L[i], b = L[i + 1] || a; const f = b[0] === a[0] ? 0 : (x - a[0]) / (b[0] - a[0]); return a[1] + (b[1] - a[1]) * Math.max(-3, Math.min(4, f)); };
+  let best = -1, bd = 1e9;
+  pg.staves.forEach((st, i) => { if (X < st.xL - ls || X > st.xR + ls) return; const d = Math.abs(Y - lineY(st, 2, X)); if (d < bd) { bd = d; best = i; } });
+  if (best < 0 || bd > 7 * ls) { showBanner(t('Hier ist keine Notenzeile. Tippe direkt in eine Notenzeile.'), 3000); return; }
+  const sy = pg.systems.findIndex(s => s.staves.includes(best)); if (sy < 0) return;
+  const sh = pg.systems[sy].staves.length > 2 ? pg.systems[sy].staves.slice(-2) : pg.systems[sy].staves;
+  const staff = sh.indexOf(best); if (staff < 0) { showBanner(t('Diese Zeile gehört nicht zur Klavierstimme.'), 3000); return; }
+  const st = pg.staves[best], sp = (lineY(st, 4, X) - lineY(st, 0, X)) / 4;
+  const pos = Math.round((lineY(st, 4, X) - Y) / (sp / 2));
+  const dia = (st.clef === 'F' ? 18 : st.clef === 'C' ? 24 : 30) + pos;
+  const bars = pg.systems[sy].bars.map(b => b.x).sort((a, b) => a - b); let m = 0; while (m < bars.length && bars[m] < X) m++;
+  oeSnap();
+  const e = {id: OE.ev.reduce((a, o) => Math.max(a, o.id || 0), 0) + 1, page: OE.page, sys: sy, staff, x: X, ox: px, oy: py, r: 0.6 * ls / pg.s, m, midi: 60,
+    dur: OE.lastDur || 1, stem: 0, sx: X, ls, key: OE.key, clef: st.clef, step: ((dia % 7) + 7) % 7, oct: Math.floor(dia / 7), acc: null, added: true};
+  OE.ev.push(e); omrApplyKey(OE.ev, OE.key);
+  OE.add = false; $('#oeAdd').setAttribute('aria-pressed', 'false');
+  oeChanged(); oeSelect(e, true);
+}
+function closeOmrEditor(){ if ($('#omred').hidden) return; stopPreview(); if (OE.rec) oeSave(); $('#omred').hidden = true; }
+$('#oeWrap').addEventListener('click', ev => {
+  const pg = OE.pages[OE.page]; if (!pg) return;
+  const r = $('#oeImg').getBoundingClientRect(); if (!r.width) return;
+  const k = pg.w / r.width, px = (ev.clientX - r.left) * k, py = (ev.clientY - r.top) * k;
+  if (OE.add) { oeAddAt(px, py); return; }
+  let best = null, bd = 1e9;
+  OE.ev.forEach(e => { if (e.page !== OE.page) return; const d = Math.hypot(e.ox - px, e.oy - py); if (d < bd) { bd = d; best = e; } });
+  if (best && bd < Math.max((best.r || 7) * 1.7, 22 * k)) oeSelect(best, true); else oeSelect(null);
+});
+$('#oeBack').addEventListener('click', async () => { const id = OE.rec && OE.rec.id; await oeSave(); closeOmrEditor(); if (history.state && history.state.v === 'omr') history.back(); $('#lib').hidden = false; await loadLibrary(); renderLib(); const en = library.find(x => x.id === id); if (en) openDetail(en); });
+$('#oePrev').addEventListener('click', () => { OE.page--; OE.sel = null; oeShowPage(); });
+$('#oeNext').addEventListener('click', () => { OE.page++; OE.sel = null; oeShowPage(); });
+$('#oeZoomIn').addEventListener('click', () => { OE.zoom = Math.min(3, OE.zoom + 0.5); oeShowPage(); });
+$('#oeZoomOut').addEventListener('click', () => { OE.zoom = Math.max(1, OE.zoom - 0.5); oeShowPage(); });
+$('#oePrevN').addEventListener('click', () => oeStep(-1));
+$('#oeNextN').addEventListener('click', () => oeStep(1));
+$('#oeUp').addEventListener('click', () => { if (OE.sel) { oeSetPitch(OE.sel.midi + 1); synth(OE.sel.midi, 0.4, 0.5); } });
+$('#oeDown').addEventListener('click', () => { if (OE.sel) { oeSetPitch(OE.sel.midi - 1); synth(OE.sel.midi, 0.4, 0.5); } });
+document.querySelectorAll('#oeDur button').forEach(b => b.addEventListener('click', () => {
+  const e = OE.sel; if (!e) return; oeSnap(); const d = +b.dataset.d; OE.lastDur = d; chordMates(e).forEach(o => { o.dur = d; }); oeChanged();
+}));
+$('#oeDot').addEventListener('click', () => {
+  const e = OE.sel; if (!e) return; oeSnap(); const dotted = [3, 1.5, 0.75, 0.375].includes(e.dur);
+  chordMates(e).forEach(o => { o.dur = dotted ? e.dur / 1.5 : e.dur * 1.5; }); oeChanged();
+});
+$('#oeHand').addEventListener('click', () => { const e = OE.sel; if (!e) return; oeSnap(); const ns = e.staff ? 0 : 1; chordMates(e).forEach(o => { o.staff = ns; }); oeChanged(); });
+$('#oeDel').addEventListener('click', () => {
+  const e = OE.sel; if (!e) return; const o = oeOrder(), i = o.indexOf(e);
+  oeSnap(); OE.ev.splice(OE.ev.indexOf(e), 1); OE.sel = null; oeChanged(); const nx = o[i + 1] || o[i - 1]; if (nx && nx !== e) oeSelect(nx);
+});
+$('#oeAdd').addEventListener('click', () => { OE.add = !OE.add; $('#oeAdd').setAttribute('aria-pressed', String(OE.add)); if (OE.add) OE.sel = null; oeDraw(); oeInfo(); });
+$('#oeUndo').addEventListener('click', () => {
+  const s = OE.undo.pop(); if (!s) return; const o = JSON.parse(s);
+  OE.ev = o.ev; OE.key = o.key; OE.ts = o.ts; $('#oeKey').value = OE.key; $('#oeTime').value = OE.ts; OE.sel = null; oeChanged();
+});
+$('#oeKey').addEventListener('change', () => { oeSnap(); OE.key = +$('#oeKey').value; omrApplyKey(OE.ev, OE.key); oeChanged(); });
+$('#oeTime').addEventListener('change', () => { oeSnap(); OE.ts = $('#oeTime').value; oeChanged(); });
+$('#oeListen').addEventListener('click', () => {
+  if (PV.on) { stopPreview(); return; }
+  try {
+    const xml = omrMusicXML(OE.rec.title, OE.ev, OE.pages, {key: OE.key, ts: OE.ts}).xml;
+    startPreview(songFromRecord({id: 'omr-preview', title: OE.rec.title, cat: '', format: 'xml', data: xml}));
+  } catch (err) { showBanner(esc(err.message), 4000); }
+});
+$('#oeDone').addEventListener('click', async () => {
+  const id = OE.rec.id; await oeSave(); closeOmrEditor();
+  await loadLibrary(); const en = library.find(x => x.id === id);
+  if (en && await selectEntry(en, en.id)) {
+    setSeg('mode', 'wait');
+    showPlayer(); showBanner(t('Modus „Warten“ ist eingestellt: Das Lied geht erst weiter, wenn du die richtigen Tasten drückst.'), 6000);
+  }
+});
+$('#oeMidi').addEventListener('click', connectMidi);
+
+/* ---------- Daten & Sicherung ---------- */
+const b64enc = buf => { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+const b64dec = s => { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; };
+const recOut = r => { const o = Object.assign({}, r); if (o.data instanceof ArrayBuffer) o.data = {b64: b64enc(o.data)}; return o; };
+const recIn = r => { const o = Object.assign({}, r); if (o.data && typeof o.data === 'object' && o.data.b64) o.data = b64dec(o.data.b64); return o; };
+function saveBlob(name, blob){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+async function shareBlob(name, text, title){
+  for (const [n, type] of [[name, 'application/json'], [name.replace(/\.json$/, '.txt'), 'text/plain']]) {
+    const f = new File([text], n, {type});
+    if (navigator.canShare && navigator.canShare({files: [f]})) { try { await navigator.share({files: [f], title}); return true; } catch (err) { if (err && err.name === 'AbortError') return true; } }
+  }
+  return false;
+}
+async function persistStorage(){
+  try { if (navigator.storage && navigator.storage.persist) { if (await navigator.storage.persisted()) return true; return await navigator.storage.persist(); } } catch (err) {}
+  return false;
+}
+async function backupJSON(){
+  const users = getUsers(), metas = {};
+  users.forEach(u => { const m = LS.get('pianohero.meta.' + u.id, null); if (m) metas[u.id] = m; });
+  const songs = (await DB.all()).map(recOut);
+  return JSON.stringify({pianohero: 'backup', v: 1, created: new Date().toISOString(), users, metas, settings: LS.get('pianohero.settings', null), songs});
+}
+async function renderDataStat(){
+  const recs = await DB.all(), users = getUsers();
+  const pers = await persistStorage();
+  const last = LS.get('pianohero.lastBackup', 0);
+  let est = '';
+  try { if (navigator.storage && navigator.storage.estimate) { const q = await navigator.storage.estimate(); est = ' · ' + t('belegt: {m} MB', {m: (q.usage / 1048576).toFixed(1).replace('.', ',')}); } } catch (err) {}
+  $('#dataStat').innerHTML = (DB.db ? '' : '<b class="warn">' + t('Achtung: Der Gerätespeicher ist nicht verfügbar. Neue Lieder gehen beim Neuladen verloren.') + '</b><br>') +
+    t('Auf diesem Gerät · eigene Lieder: {s} · Profile: {u}', {s: recs.length, u: users.length}) + est + '<br>' +
+    t('Dauerhafter Speicher: {p}', {p: pers ? t('aktiv') : t('vom Browser nicht bestätigt')}) + '<br>' +
+    t('Letzte Sicherung: {d}', {d: last ? new Date(last).toLocaleDateString(LANG) : t('noch keine')});
+}
+$('#dataBtn').addEventListener('click', () => { openSheet('data'); renderDataStat(); });
+$('#bkSave').addEventListener('click', async () => {
+  try { const js = await backupJSON(); saveBlob('PianoHero-Sicherung-' + new Date().toISOString().slice(0, 10) + '.json', new Blob([js], {type: 'application/json'})); LS.set('pianohero.lastBackup', Date.now()); renderDataStat(); }
+  catch (err) { showBanner(esc(err.message), 5000); }
+});
+$('#bkShare').addEventListener('click', async () => {
+  try { const js = await backupJSON(); const ok = await shareBlob('PianoHero-Sicherung-' + new Date().toISOString().slice(0, 10) + '.json', js, 'Piano Hero');
+    if (ok) { LS.set('pianohero.lastBackup', Date.now()); renderDataStat(); } else showBanner(t('Teilen wird von diesem Browser nicht unterstützt. Nutze „Sicherung speichern“.'), 5000); }
+  catch (err) { showBanner(esc(err.message), 5000); }
+});
+async function restoreBackup(o){
+  let nu = 0, ns = 0;
+  const users = getUsers();
+  (o.users || []).forEach(u => { if (u && u.id && !users.some(x => x.id === u.id)) { users.push(u); nu++; } });
+  LS.set('pianohero.users', users);
+  Object.keys(o.metas || {}).forEach(uid => {
+    const cur = LS.get('pianohero.meta.' + uid, null), b = o.metas[uid];
+    if (!cur) { LS.set('pianohero.meta.' + uid, b); return; }
+    cur.fav = Object.assign({}, b.fav || {}, cur.fav || {});
+    cur.stats = cur.stats || {};
+    Object.keys(b.stats || {}).forEach(id => { const x = cur.stats[id], y = b.stats[id]; if (!x) cur.stats[id] = y; else cur.stats[id] = {prog: Math.max(x.prog || 0, y.prog || 0), err: Math.min(x.err == null ? 100 : x.err, y.err == null ? 100 : y.err), runs: Math.max(x.runs || 0, y.runs || 0)}; });
+    LS.set('pianohero.meta.' + uid, cur);
+  });
+  for (const r of (o.songs || [])) {
+    if (!r || !r.id) continue;
+    const cur = await DB.get(r.id);
+    if (!cur || (r.mod || r.added || 0) > (cur.mod || cur.added || 0)) { await DB.put(recIn(r)); ns++; }
+  }
+  if (USER) { meta = loadMeta(USER.id); }
+  await loadLibrary(); renderLib();
+  return {nu, ns};
+}
+$('#bkLoad').addEventListener('change', async ev => {
+  const f = ev.target.files[0]; ev.target.value = ''; if (!f) return;
+  try {
+    const o = JSON.parse(await f.text());
+    if (o.pianohero === 'song') { await importPackage(o); closeSheets(); return; }
+    if (o.pianohero !== 'backup') throw new Error(t('Das ist keine Piano-Hero-Sicherung.'));
+    const r = await restoreBackup(o); renderDataStat();
+    showBanner(t('Sicherung geladen. Übernommen: Lieder {s}, Profile {u}.', {s: r.ns, u: r.nu}), 6000);
+  } catch (err) { showBanner(esc(err.message || t('Die Datei konnte nicht gelesen werden.')), 6000); }
+});
+
+/* ---------- Lieder teilen ---------- */
+async function songPackage(id, withPages){
+  const r = await DB.get(id); if (!r) throw new Error(t('Song nicht gefunden.'));
+  const s = recOut(r);
+  ['id', 'owner', 'shared', 'added', 'mod'].forEach(k => delete s[k]);
+  if (!withPages) { delete s.pages; delete s.omr; if (s.img && s.img.length > 60000) delete s.img; }
+  return {pianohero: 'song', v: 1, from: USER ? USER.name : '', song: s};
+}
+async function gz(str){ const cs = new Blob([str]).stream().pipeThrough(new CompressionStream('gzip')); return new Uint8Array(await new Response(cs).arrayBuffer()); }
+const b64url = u => b64enc(u.buffer || u).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+async function importPackage(o){
+  const s = o && o.song; if (!s || !s.format || (!s.data && !s.pages)) throw new Error(t('Die Datei enthält kein Lied.'));
+  const rec = recIn(s);
+  Object.assign(rec, {id: 'imp-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), owner: USER && USER.id, added: Date.now(), from: o.from || '', cat: rec.cat || 'Importiert'});
+  if (rec.format !== 'scan') { const song = songFromRecord(rec); Object.assign(rec, {dur: song.dur, hands: song.hands, count: song.notes.length}); if (!rec.diff) rec.diff = songDiff(song); }
+  await DB.put(rec); await loadLibrary(); renderLib();
+  const en = library.find(x => x.id === rec.id); if (en) openDetail(en);
+  showBanner(t('„{t}“ wurde in deine Bibliothek übernommen.', {t: esc(rec.title)}), 5000);
+  return rec;
+}
+let shareEntry = null;
+async function openShare(e){
+  shareEntry = e;
+  const rec = await DB.get(e.id); if (!rec) return;
+  const mine = !rec.owner || (USER && rec.owner === USER.id);
+  $('#shTitle').textContent = rec.title;
+  $('#shLocalRow').hidden = !mine || getUsers().length < 2;
+  $('#shLocal').checked = !!rec.shared;
+  $('#shLink').hidden = rec.format === 'scan';
+  $('#shStat').textContent = '';
+  openSheet('share');
+}
+$('#shLocal').addEventListener('change', async () => {
+  const rec = await DB.get(shareEntry.id); if (!rec) return; rec.shared = $('#shLocal').checked; rec.mod = Date.now(); await DB.put(rec);
+  $('#shStat').textContent = rec.shared ? t('Alle Profile auf diesem Gerät sehen das Lied jetzt.') : t('Nur du siehst das Lied.');
+});
+const pkgName = rec => (rec.title || 'Lied').replace(/[\\/:*?"<>|]+/g, '').slice(0, 60) + '.pianohero.json';
+$('#shFile').addEventListener('click', async () => {
+  try { const p = await songPackage(shareEntry.id, true), js = JSON.stringify(p);
+    if (!await shareBlob(pkgName(p.song), js, p.song.title)) { saveBlob(pkgName(p.song), new Blob([js], {type: 'application/json'})); $('#shStat').textContent = t('Datei gespeichert. Schicke sie z. B. per E-Mail oder Google Drive weiter.'); } }
+  catch (err) { $('#shStat').textContent = err.message; }
+});
+$('#shDl').addEventListener('click', async () => {
+  try { const p = await songPackage(shareEntry.id, true); saveBlob(pkgName(p.song), new Blob([JSON.stringify(p)], {type: 'application/json'})); $('#shStat').textContent = t('Datei gespeichert. Schicke sie z. B. per E-Mail oder Google Drive weiter.'); }
+  catch (err) { $('#shStat').textContent = err.message; }
+});
+$('#shLink').addEventListener('click', async () => {
+  try {
+    if (!window.CompressionStream) throw new Error(t('Dieser Browser ist zu alt für Links. Teile das Lied als Datei.'));
+    const p = await songPackage(shareEntry.id, false); delete p.song.img;
+    const code = b64url(await gz(JSON.stringify(p)));
+    if (code.length > 60000) throw new Error(t('Das Lied ist zu groß für einen Link. Teile es als Datei.'));
+    const url = location.href.split('#')[0] + '#lied=' + code;
+    if (navigator.share) { try { await navigator.share({title: p.song.title, text: t('Lied „{t}“ für Piano Hero', {t: p.song.title}), url}); return; } catch (err) { if (err && err.name === 'AbortError') return; } }
+    await navigator.clipboard.writeText(url); $('#shStat').textContent = t('Link kopiert. Füge ihn in eine Nachricht ein.');
+  } catch (err) { $('#shStat').textContent = err.message; }
+});
+// Link mit Lied empfangen (#lied=…)
+let pendingSong = null;
+(function(){ const m = /#lied=([A-Za-z0-9_-]+)/.exec(location.hash); if (m) { pendingSong = m[1]; try { history.replaceState(history.state, '', location.href.split('#')[0]); } catch (err) {} } })();
+async function checkIncoming(){
+  if (!pendingSong || !USER) return;
+  const code = pendingSong; pendingSong = null;
+  try {
+    const b = b64dec(code.replace(/-/g, '+').replace(/_/g, '/'));
+    const txt = await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    const o = JSON.parse(txt); if (!o || o.pianohero !== 'song') throw new Error('x');
+    $('#inTitle').textContent = o.song.title || ''; $('#inFrom').textContent = o.from ? t('geteilt von {n}', {n: o.from}) : '';
+    $('#inOk').onclick = async () => { closeSheets(); try { await importPackage(o); } catch (err) { showBanner(esc(err.message), 5000); } };
+    openSheet('incoming');
+  } catch (err) { showBanner(t('Der Link ist unvollständig oder beschädigt.'), 5000); }
+}
+
+window.__ph = {get OE(){ return OE; }, get S(){ return S; }, gateTime: () => gateTime(), groupAt: g => groupAt(g), noteOn: (p, s) => noteOn(p, s), noteOff: p => noteOff(p), togglePlay: () => togglePlay(), getUsers: () => getUsers()};   // für automatische Tests
 /* ---------- Start ---------- */
 setSeg('mode', S.mode); setSeg('hand', S.hand); setSeg('view', S.view); setSeg('kb', S.kb);
 $('#tempo').value = Math.round(S.tempo * 100); $('#tempoVal').textContent = Math.round(S.tempo * 100) + ' %';
@@ -2254,7 +3762,7 @@ function frame(now){
     } else if (b.dataset.w) { b.dataset.w = ''; if (!S.finished) hideBanner(); }
     updCursor(false);
   }
-  draw(now);
+  if ($('#scanview').hidden) draw(now); else drawMiniKb();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
