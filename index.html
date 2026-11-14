@@ -332,7 +332,7 @@ kbd{font-family:var(--f-mono);font-size:.85em;background:var(--raise);border:1px
     <div class="seg" id="kbSeg" role="radiogroup" aria-label="Anzahl Tasten">
       <button data-v="song" role="radio">Song</button><button data-v="61" role="radio">61</button><button data-v="88" role="radio">88</button>
     </div>
-    <div class="slider tempo"><label for="tempo">Tempo <b id="tempoVal">100 %</b></label><div class="trow"><button type="button" id="tDown" aria-label="Langsamer">−</button><input type="range" id="tempo" min="25" max="150" step="5" value="100"><button type="button" id="tUp" aria-label="Schneller">+</button></div></div>
+    <div class="slider tempo"><label for="tempo">Tempo <b id="tempoVal">100 %</b></label><div class="trow"><button type="button" id="tDown" aria-label="Langsamer">−</button><input type="range" id="tempo" min="25" max="200" step="5" value="100"><button type="button" id="tUp" aria-label="Schneller">+</button></div></div>
     <label class="slider" for="zoom" id="zoomLbl"><span>Notengröße <b id="zoomVal">100 %</b></span><input type="range" id="zoom" min="60" max="160" step="10" value="100"></label>
     <label class="slider" for="look" id="lookLbl"><span>Vorschau <b id="lookVal">3,5 s</b></span><input type="range" id="look" min="1.5" max="7" step="0.5" value="3.5"></label>
     <div class="grp"><button id="aBtn">A</button><button id="bBtn">B</button><button id="loopBtn" aria-pressed="false">Schleife</button></div>
@@ -1790,9 +1790,21 @@ function setSeg(which, v){
 $('#playBtn').addEventListener('click', togglePlay);
 $('#restartBtn').addEventListener('click', () => { restart(); updCursor(true); });
 $('#midiBtn').addEventListener('click', connectMidi);
+// aktuelles Tempo des Songs (Viertel pro Minute) an der Spielposition
+function curBpm(){
+  const s = S.song; if (!s || !s.b2s) return 0;
+  const b = s.b2s.inv(Math.max(0, S.t)), d = s.b2s(b + 0.5) - s.b2s(b);
+  return d > 0 ? 30 / d : 0;
+}
+let tempoLbl = '';
+function updTempoLbl(){
+  const pct = Math.round(S.tempo * 100), bpm = Math.round(curBpm() * S.tempo);
+  const txt = pct + ' %' + (bpm ? ' · ' + bpm + ' BPM' : '');
+  if (txt !== tempoLbl) { $('#tempoVal').textContent = txt; tempoLbl = txt; }
+}
 function setTempo(v){
-  v = Math.max(25, Math.min(150, Math.round(v / 5) * 5));
-  S.tempo = v / 100; $('#tempo').value = v; $('#tempoVal').textContent = v + ' %';
+  v = Math.max(25, Math.min(200, Math.round(v / 5) * 5));
+  S.tempo = v / 100; $('#tempo').value = v; updTempoLbl();
   if (S.playing) cancelScheduled();   // schon eingeplante Töne mit dem neuen Tempo neu planen
   saveSettings();
 }
@@ -3755,10 +3767,11 @@ selectSong(DEMOS[0]);
   showLogin();
 })();
 
-let last = performance.now(), lastAc = 0, lastNow = '', lastSeek = -99;
+let frameN = 0, last = performance.now(), lastAc = 0, lastNow = '', lastSeek = -99;
 function frame(now){
-  let dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (ac && ac.state === 'running') { const at = ac.currentTime; if (lastAc) dt = Math.min(0.1, Math.max(0, at - lastAc)); lastAc = at; } else lastAc = 0;
+  let dt = (now - last) / 1000; last = now; if (dt > 0.5) dt = 0; else dt = Math.min(0.25, dt);
+  if (ac && ac.state === 'running') { const at = ac.currentTime; if (lastAc) { const da = at - lastAc; dt = da > 0.5 ? 0 : Math.min(0.25, Math.max(0, da)); } lastAc = at; } else lastAc = 0;
+  if (S.song && ((frameN = (frameN + 1) % 15) === 0)) updTempoLbl();
   if (S.playing && S.song) step(dt * S.tempo);
   if (S.song) {
     const tn = fmt(S.t); if (tn !== lastNow) { $('#tNow').textContent = tn; lastNow = tn; }
